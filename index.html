@@ -1,0 +1,3337 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>走れしんじくん</title>
+
+<style>
+
+* {
+    box-sizing: border-box;
+    user-select: none;
+}
+
+html,
+body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: #000;
+    font-family: Arial, "Yu Gothic", sans-serif;
+}
+
+#game {
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
+    background: #000;
+}
+
+#canvas {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+
+/* =========================
+   UI
+========================= */
+
+#ui {
+    position: fixed;
+    left: 20px;
+    top: 20px;
+    z-index: 10;
+    padding: 14px 18px;
+    min-width: 250px;
+    color: white;
+    background: rgba(0, 0, 0, 0.72);
+    border-radius: 10px;
+    pointer-events: none;
+}
+
+#title {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+#timer {
+    font-size: 28px;
+    font-weight: bold;
+}
+
+#best {
+    margin-top: 3px;
+    font-size: 13px;
+    color: #ffd700;
+}
+
+
+/* =========================
+   CONTROLS
+========================= */
+
+#controls {
+    position: fixed;
+    left: 20px;
+    bottom: 20px;
+    z-index: 10;
+    padding: 9px 14px;
+    color: white;
+    background: rgba(0, 0, 0, 0.65);
+    border-radius: 8px;
+    font-size: 13px;
+    pointer-events: none;
+}
+
+
+/* =========================
+   START
+========================= */
+
+#startScreen {
+    position: fixed;
+    inset: 0;
+    z-index: 20;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.45);
+}
+
+#startBox {
+    width: min(420px, 90vw);
+    padding: 32px;
+    text-align: center;
+    color: white;
+    background: rgba(0, 0, 0, 0.92);
+    border-radius: 18px;
+}
+
+#startBox h1 {
+    margin: 0 0 15px;
+    font-size: 34px;
+}
+
+#startBox p {
+    line-height: 1.7;
+}
+
+#startButton,
+#restartButton {
+    border: 0;
+    padding: 12px 32px;
+    border-radius: 10px;
+    background: white;
+    color: #111;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+#startButton:hover,
+#restartButton:hover {
+    transform: scale(1.04);
+}
+
+
+/* =========================
+   RESULT
+========================= */
+
+#message {
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 30;
+    display: none;
+    width: min(400px, 90vw);
+    padding: 30px;
+    text-align: center;
+    color: white;
+    background: rgba(0, 0, 0, 0.94);
+    border-radius: 18px;
+}
+
+#messageTitle {
+    font-size: 38px;
+    font-weight: bold;
+    margin-bottom: 12px;
+}
+
+#messageTime {
+    white-space: pre-line;
+    font-size: 22px;
+    margin-bottom: 20px;
+}
+
+</style>
+</head>
+
+
+<body>
+
+<div id="game">
+
+    <canvas id="canvas"></canvas>
+
+    <div id="ui">
+
+        <div id="title">
+            🏃 走れしんじくん
+        </div>
+
+        <div id="timer">
+            TIME: 0.00
+        </div>
+
+        <div id="best">
+            BEST: --
+        </div>
+
+    </div>
+
+
+    <div id="controls">
+        ← → / A D：移動　
+        SPACE / W / ↑：ジャンプ　
+        R：リスタート
+    </div>
+
+
+    <div id="startScreen">
+
+        <div id="startBox">
+
+            <h1>
+                🏃走れしんじくん
+            </h1>
+
+            <p>
+                走れしんじくん
+            </p>
+
+            <p>
+                🔺 トゲを避けろ<br>
+                🔫 敵の弾を避けろ<br>
+                🗡️ 近接敵は踏んで倒せ<br>
+                💥 銃の敵も踏んで倒せ<br>
+                💀 当たったら死亡<br>
+                🏆 ゴールまで走れ
+            </p>
+
+            <button id="startButton">
+                START
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <div id="message">
+
+        <div id="messageTitle">
+            🏆 GOAL!!
+        </div>
+
+        <div id="messageTime"></div>
+
+        <button id="restartButton">
+            もう一回
+        </button>
+
+    </div>
+
+</div>
+
+
+<script>
+
+/* =========================================================
+   CANVAS
+========================================================= */
+
+const canvas =
+    document.getElementById("canvas");
+
+const ctx =
+    canvas.getContext("2d", {
+        alpha: false
+    });
+
+const RENDER_SCALE = 1;
+
+
+/* =========================================================
+   DOM
+========================================================= */
+
+const timerElement =
+    document.getElementById("timer");
+
+const bestElement =
+    document.getElementById("best");
+
+const startScreen =
+    document.getElementById("startScreen");
+
+const startButton =
+    document.getElementById("startButton");
+
+const message =
+    document.getElementById("message");
+
+const messageTitle =
+    document.getElementById("messageTitle");
+
+const messageTime =
+    document.getElementById("messageTime");
+
+const restartButton =
+    document.getElementById("restartButton");
+
+
+/* =========================================================
+   CANVAS SIZE
+========================================================= */
+
+let screenWidth =
+    Math.max(1, window.innerWidth);
+
+let screenHeight =
+    Math.max(1, window.innerHeight);
+
+
+function resizeCanvas() {
+
+    screenWidth =
+        Math.max(1, window.innerWidth);
+
+    screenHeight =
+        Math.max(1, window.innerHeight);
+
+
+    canvas.width =
+        Math.max(
+            1,
+            Math.floor(
+                screenWidth *
+                RENDER_SCALE
+            )
+        );
+
+    canvas.height =
+        Math.max(
+            1,
+            Math.floor(
+                screenHeight *
+                RENDER_SCALE
+            )
+        );
+
+
+    canvas.style.width =
+        screenWidth + "px";
+
+    canvas.style.height =
+        screenHeight + "px";
+
+
+    ctx.setTransform(
+        RENDER_SCALE,
+        0,
+        0,
+        RENDER_SCALE,
+        0,
+        0
+    );
+
+
+    ctx.imageSmoothingEnabled =
+        true;
+
+
+    render();
+
+}
+
+
+window.addEventListener(
+    "resize",
+    resizeCanvas
+);
+
+
+/* =========================================================
+   WORLD
+========================================================= */
+
+const WORLD_WIDTH =
+    12000;
+
+
+/* =========================================================
+   PLAYER
+========================================================= */
+
+const PLAYER_WIDTH =
+    93;
+
+const PLAYER_HEIGHT =
+    73;
+
+const PLAYER_HITBOX_WIDTH =
+    50;
+
+const PLAYER_HITBOX_HEIGHT =
+    65;
+
+const PLAYER_HITBOX_OFFSET_X =
+    (
+        PLAYER_WIDTH -
+        PLAYER_HITBOX_WIDTH
+    ) / 2;
+
+const PLAYER_HITBOX_OFFSET_Y =
+    PLAYER_HEIGHT -
+    PLAYER_HITBOX_HEIGHT;
+
+const MOVE_SPEED =
+    2.5;
+
+const JUMP_POWER =
+    6;
+
+const GRAVITY =
+    0.05;
+
+
+/* =========================================================
+   ENEMY SIZE
+========================================================= */
+
+const ENEMY_WIDTH =
+    114;
+
+const ENEMY_HEIGHT =
+    94;
+
+
+/* =========================================================
+   RANGED ENEMY HITBOX
+========================================================= */
+
+const ENEMY_HITBOX_WIDTH =
+    44;
+
+const ENEMY_HITBOX_HEIGHT =
+    54;
+
+const ENEMY_HITBOX_OFFSET_X =
+    (
+        ENEMY_WIDTH -
+        ENEMY_HITBOX_WIDTH
+    ) / 2;
+
+const ENEMY_HITBOX_OFFSET_Y =
+    (
+        ENEMY_HEIGHT -
+        ENEMY_HITBOX_HEIGHT
+    ) / 2;
+
+
+/* =========================================================
+   MELEE HITBOX
+========================================================= */
+
+const MELEE_HITBOX_WIDTH =
+    60;
+
+const MELEE_HITBOX_HEIGHT =
+    65;
+
+const MELEE_HITBOX_OFFSET_X =
+    (
+        ENEMY_WIDTH -
+        MELEE_HITBOX_WIDTH
+    ) / 2;
+
+const MELEE_HITBOX_OFFSET_Y =
+    (
+        ENEMY_HEIGHT -
+        MELEE_HITBOX_HEIGHT
+    ) / 2;
+
+
+/* =========================================================
+   CAMERA
+========================================================= */
+
+const CAMERA_SMOOTH =
+    0.12;
+
+let cameraX =
+    0;
+
+
+/* =========================================================
+   PLATFORM DATA
+========================================================= */
+
+const platforms = [
+
+    { x: 0,     y: 650, w: 600, h: 80 },
+
+    { x: 720,   y: 550, w: 200, h: 30 },
+    { x: 1010,  y: 450, w: 190, h: 30 },
+    { x: 1290,  y: 540, w: 220, h: 30 },
+    { x: 1600,  y: 420, w: 180, h: 30 },
+
+    { x: 1880,  y: 520, w: 220, h: 30 },
+    { x: 2200,  y: 400, w: 170, h: 30 },
+    { x: 2470,  y: 500, w: 200, h: 30 },
+    { x: 2780,  y: 380, w: 170, h: 30 },
+    { x: 3070,  y: 540, w: 240, h: 30 },
+
+    { x: 3400,  y: 450, w: 150, h: 30 },
+    { x: 3650,  y: 350, w: 150, h: 30 },
+    { x: 3910,  y: 450, w: 150, h: 30 },
+    { x: 4170,  y: 550, w: 180, h: 30 },
+
+    { x: 4480,  y: 650, w: 350, h: 80 },
+
+    { x: 4950, y: 530, w: 150, h: 30 },
+    { x: 5210, y: 430, w: 150, h: 30 },
+    { x: 5470, y: 530, w: 150, h: 30 },
+
+    { x: 5750, y: 650, w: 500, h: 80 },
+
+    { x: 6380, y: 540, w: 170, h: 30 },
+    { x: 6660, y: 430, w: 160, h: 30 },
+    { x: 6940, y: 540, w: 170, h: 30 },
+
+    { x: 7240, y: 430, w: 140, h: 30 },
+    { x: 7490, y: 330, w: 140, h: 30 },
+    { x: 7740, y: 450, w: 150, h: 30 },
+    { x: 8010, y: 550, w: 180, h: 30 },
+
+    { x: 8320, y: 650, w: 300, h: 80 },
+
+    { x: 8730, y: 520, w: 150, h: 30 },
+    { x: 9000, y: 400, w: 150, h: 30 },
+    { x: 9270, y: 500, w: 150, h: 30 },
+    { x: 9540, y: 380, w: 150, h: 30 },
+
+    { x: 9820, y: 520, w: 170, h: 30 },
+    { x: 10090, y: 400, w: 140, h: 30 },
+    { x: 10340, y: 300, w: 140, h: 30 },
+    { x: 10590, y: 420, w: 150, h: 30 },
+    { x: 10860, y: 530, w: 170, h: 30 },
+
+    { x: 11180, y: 650, w: 650, h: 80 }
+
+];
+
+
+/* =========================================================
+   SPIKES
+========================================================= */
+
+const spikes = [
+
+    { x: 350,  y: 614 },
+    { x: 410,  y: 614 },
+    { x: 760,  y: 514 },
+    { x: 1340, y: 504 },
+    { x: 1930, y: 484 },
+    { x: 2520, y: 464 },
+    { x: 3460, y: 414 }
+
+];
+
+
+/* =========================================================
+   RANGED ENEMIES
+========================================================= */
+
+const rangedEnemies = [
+
+    {
+        x: 6000,
+        y: 596,
+        fireRate: 1500,
+        lastShot: 0,
+        alive: true
+    },
+
+    {
+        x: 7360,
+        y: 376,
+        fireRate: 1000,
+        lastShot: 0,
+        alive: true
+    },
+
+    {
+        x: 9600,
+        y: 326,
+        fireRate: 1000,
+        lastShot: 0,
+        shotCount: 0,
+        alive: true
+    }
+
+];
+
+
+/* =========================================================
+   MELEE ENEMIES
+========================================================= */
+
+const meleeEnemies = [
+
+    {
+        x: 1450,
+        y: 475,
+        originalX: 1450,
+        originalY: 475,
+        speed: 1.2,
+        alive: true
+    },
+
+    {
+        x: 2820,
+        y: 315,
+        originalX: 2820,
+        originalY: 315,
+        speed: 1.2,
+        alive: true
+    },
+
+    {
+        x: 4250,
+        y: 485,
+        originalX: 4250,
+        originalY: 485,
+        speed: 1.2,
+        alive: true
+    },
+
+    {
+        x: 5100,
+        y: 465,
+        originalX: 5100,
+        originalY: 465,
+        speed: 1.2,
+        alive: true
+    },
+
+    {
+        x: 7850,
+        y: 385,
+        originalX: 7850,
+        originalY: 385,
+        speed: 1.2,
+        alive: true
+    },
+
+    {
+        x: 8750,
+        y: 455,
+        originalX: 8750,
+        originalY: 455,
+        speed: 1.2,
+        alive: true
+    },
+
+    {
+        x: 10000,
+        y: 455,
+        originalX: 10000,
+        originalY: 455,
+        speed: 1.2,
+        alive: true
+    },
+
+    {
+        x: 11360,
+        y: 585,
+        originalX: 11360,
+        originalY: 585,
+        speed: 1.2,
+        alive: true
+    }
+
+];
+
+
+/* =========================================================
+   GOAL
+========================================================= */
+
+const goal = {
+
+    x: 11550,
+    y: 570,
+    w: 55,
+    h: 80
+
+};
+
+
+/* =========================================================
+   BULLETS
+========================================================= */
+
+const bullets = [];
+
+const MAX_BULLETS =
+    20;
+
+
+/* =========================================================
+   PLAYER STATE
+========================================================= */
+
+let playerX =
+    100;
+
+let playerY =
+    650 -
+    PLAYER_HEIGHT;
+
+let velocityY =
+    0;
+
+let grounded =
+    true;
+
+
+/* =========================================================
+   INPUT
+========================================================= */
+
+let leftPressed =
+    false;
+
+let rightPressed =
+    false;
+
+let jumpPressed =
+    false;
+
+
+/* =========================================================
+   GAME STATE
+========================================================= */
+
+let gameStarted =
+    false;
+
+let gameFinished =
+    false;
+
+let startTime =
+    0;
+
+let lastTime =
+    performance.now();
+
+let lastTimerUpdate =
+    0;
+
+
+/* =========================================================
+   BEST TIME
+========================================================= */
+
+
+let bestTime =
+    null;
+
+
+try {
+
+    bestTime =
+        localStorage.getItem(
+            "athleticBestTime"
+        );
+
+} catch (e) {
+
+    console.warn(
+        "localStorageを使用できません:",
+        e
+    );
+
+}
+
+
+if (
+    bestTime !== null
+) {
+
+    bestElement.textContent =
+        "BEST: " +
+        Number(bestTime).toFixed(2) +
+        " 秒";
+
+}
+
+
+/* =========================================================
+   KEY DOWN
+========================================================= */
+
+document.addEventListener(
+    "keydown",
+    function(e) {
+
+        if (
+            e.key === "ArrowLeft" ||
+            e.key === "a" ||
+            e.key === "A"
+        ) {
+
+            leftPressed =
+                true;
+
+            e.preventDefault();
+
+        }
+
+
+        if (
+            e.key === "ArrowRight" ||
+            e.key === "d" ||
+            e.key === "D"
+        ) {
+
+            rightPressed =
+                true;
+
+            e.preventDefault();
+
+        }
+
+
+        if (
+            e.code === "Space" ||
+            e.key === "ArrowUp" ||
+            e.key === "w" ||
+            e.key === "W"
+        ) {
+
+            if (
+                !e.repeat
+            ) {
+
+                jumpPressed =
+                    true;
+
+            }
+
+            e.preventDefault();
+
+        }
+
+
+        if (
+            e.key === "r" ||
+            e.key === "R"
+        ) {
+
+            if (
+                gameStarted ||
+                gameFinished
+            ) {
+
+                startGame();
+
+            }
+
+        }
+
+    }
+);
+
+
+/* =========================================================
+   KEY UP
+========================================================= */
+
+document.addEventListener(
+    "keyup",
+    function(e) {
+
+        if (
+            e.key === "ArrowLeft" ||
+            e.key === "a" ||
+            e.key === "A"
+        ) {
+
+            leftPressed =
+                false;
+
+        }
+
+
+        if (
+            e.key === "ArrowRight" ||
+            e.key === "d" ||
+            e.key === "D"
+        ) {
+
+            rightPressed =
+                false;
+
+        }
+
+
+        if (
+            e.code === "Space" ||
+            e.key === "ArrowUp" ||
+            e.key === "w" ||
+            e.key === "W"
+        ) {
+
+            jumpPressed =
+                false;
+
+        }
+
+    }
+);
+
+
+/* =========================================================
+   START BUTTON
+========================================================= */
+
+startButton.addEventListener(
+    "click",
+    function() {
+
+        startGame();
+
+    }
+);
+
+
+/* =========================================================
+   RESTART BUTTON
+========================================================= */
+
+restartButton.addEventListener(
+    "click",
+    function() {
+
+        startGame();
+
+    }
+);
+
+
+/* =========================================================
+   CLEAR BULLETS
+========================================================= */
+
+function clearBullets() {
+
+    bullets.length =
+        0;
+
+}
+
+
+/* =========================================================
+   START GAME
+========================================================= */
+
+function startGame() {
+
+    /* ★ 死亡・ゴール画面を完全に消す */
+
+    message.style.display =
+        "none";
+
+    startScreen.style.display =
+        "none";
+
+
+    playerX =
+        100;
+
+    playerY =
+        650 -
+        PLAYER_HEIGHT;
+
+    velocityY =
+        0;
+
+    grounded =
+        true;
+
+    cameraX =
+        0;
+
+    jumpPressed =
+        false;
+
+    leftPressed =
+        false;
+
+    rightPressed =
+        false;
+
+    clearBullets();
+
+
+    gameStarted =
+        true;
+
+    gameFinished =
+        false;
+
+
+    startTime =
+        performance.now();
+
+    lastTimerUpdate =
+        0;
+
+
+    const now =
+        performance.now();
+
+
+    /* =========================
+       銃の敵を復活
+    ========================= */
+
+    for (
+        let i = 0;
+        i < rangedEnemies.length;
+        i++
+    ) {
+
+        rangedEnemies[i].lastShot =
+            now;
+
+        rangedEnemies[i].shotCount =
+            0;
+
+        rangedEnemies[i].alive =
+            true;
+
+    }
+
+
+    /* =========================
+       近接敵を復活
+    ========================= */
+
+    for (
+        let i = 0;
+        i < meleeEnemies.length;
+        i++
+    ) {
+
+        meleeEnemies[i].x =
+            meleeEnemies[i].originalX;
+
+        meleeEnemies[i].y =
+            meleeEnemies[i].originalY;
+
+        meleeEnemies[i].alive =
+            true;
+
+    }
+
+
+    timerElement.textContent =
+        "TIME: 0.00";
+
+
+    render();
+
+}
+
+
+/* =========================================================
+   COLLISION
+========================================================= */
+
+function rectsOverlap(
+    ax,
+    ay,
+    aw,
+    ah,
+    bx,
+    by,
+    bw,
+    bh
+) {
+
+    return (
+        ax < bx + bw &&
+        ax + aw > bx &&
+        ay < by + bh &&
+        ay + ah > by
+    );
+
+}
+
+
+/* =========================================================
+   PLAYER HITBOX
+========================================================= */
+
+function getPlayerHitbox() {
+
+    return {
+
+        x:
+            playerX +
+            PLAYER_HITBOX_OFFSET_X,
+
+        y:
+            playerY +
+            PLAYER_HITBOX_OFFSET_Y,
+
+        w:
+            PLAYER_HITBOX_WIDTH,
+
+        h:
+            PLAYER_HITBOX_HEIGHT
+
+    };
+
+}
+
+
+/* =========================================================
+   ENEMY HITBOX
+========================================================= */
+
+function getEnemyHitbox(enemy) {
+
+    return {
+
+        x:
+            enemy.x +
+            ENEMY_HITBOX_OFFSET_X,
+
+        y:
+            enemy.y +
+            ENEMY_HITBOX_OFFSET_Y,
+
+        w:
+            ENEMY_HITBOX_WIDTH,
+
+        h:
+            ENEMY_HITBOX_HEIGHT
+
+    };
+
+}
+
+
+/* =========================================================
+   MELEE HITBOX
+========================================================= */
+
+function getMeleeEnemyHitbox(enemy) {
+
+    return {
+
+        x:
+            enemy.x +
+            MELEE_HITBOX_OFFSET_X,
+
+        y:
+            enemy.y +
+            MELEE_HITBOX_OFFSET_Y,
+
+        w:
+            MELEE_HITBOX_WIDTH,
+
+        h:
+            MELEE_HITBOX_HEIGHT
+
+    };
+
+}
+
+
+/* =========================================================
+   HORIZONTAL MOVEMENT
+========================================================= */
+
+function updateHorizontal() {
+
+    let nextX =
+        playerX;
+
+
+    if (leftPressed) {
+
+        nextX -=
+            MOVE_SPEED;
+
+    }
+
+
+    if (rightPressed) {
+
+        nextX +=
+            MOVE_SPEED;
+
+    }
+
+
+    if (
+        nextX < 0
+    ) {
+
+        nextX =
+            0;
+
+    }
+
+
+    if (
+        nextX >
+        WORLD_WIDTH -
+        PLAYER_WIDTH
+    ) {
+
+        nextX =
+            WORLD_WIDTH -
+            PLAYER_WIDTH;
+
+    }
+
+
+    const hitbox =
+        getPlayerHitbox();
+
+    const top =
+        hitbox.y;
+
+    const bottom =
+        hitbox.y +
+        hitbox.h;
+
+
+    for (
+        let i = 0;
+        i < spikes.length;
+        i++
+    ) {
+
+        const spike =
+            spikes[i];
+
+
+        if (
+            bottom <= spike.y ||
+            top >= spike.y + 36
+        ) {
+
+            continue;
+
+        }
+
+
+        const currentLeft =
+            playerX +
+            PLAYER_HITBOX_OFFSET_X;
+
+        const currentRight =
+            currentLeft +
+            PLAYER_HITBOX_WIDTH;
+
+        const nextLeft =
+            nextX +
+            PLAYER_HITBOX_OFFSET_X;
+
+        const nextRight =
+            nextLeft +
+            PLAYER_HITBOX_WIDTH;
+
+
+        if (
+            nextX > playerX
+        ) {
+
+            if (
+                currentRight <= spike.x &&
+                nextRight >= spike.x
+            ) {
+
+                nextX =
+                    spike.x -
+                    PLAYER_HITBOX_OFFSET_X -
+                    PLAYER_HITBOX_WIDTH;
+
+            }
+
+        }
+
+
+        if (
+            nextX < playerX
+        ) {
+
+            if (
+                currentLeft >=
+                    spike.x + 36 &&
+                nextLeft <=
+                    spike.x + 36
+            ) {
+
+                nextX =
+                    spike.x +
+                    36 -
+                    PLAYER_HITBOX_OFFSET_X;
+
+            }
+
+        }
+
+    }
+
+
+    playerX =
+        nextX;
+
+}
+
+
+/* =========================================================
+   JUMP
+========================================================= */
+
+function updateJump() {
+
+    if (
+        jumpPressed &&
+        grounded
+    ) {
+
+        velocityY =
+            -JUMP_POWER;
+
+        grounded =
+            false;
+
+        jumpPressed =
+            false;
+
+    }
+
+}
+
+
+/* =========================================================
+   GRAVITY
+========================================================= */
+
+function updateGravity() {
+
+    velocityY +=
+        GRAVITY;
+
+    playerY +=
+        velocityY;
+
+}
+
+
+/* =========================================================
+   PLATFORM COLLISION
+========================================================= */
+
+function updatePlatforms() {
+
+    grounded =
+        false;
+
+
+    const hitbox =
+        getPlayerHitbox();
+
+
+    const left =
+        hitbox.x;
+
+    const right =
+        hitbox.x +
+        hitbox.w;
+
+    const bottom =
+        hitbox.y +
+        hitbox.h;
+
+    const previousBottom =
+        bottom -
+        velocityY;
+
+
+    for (
+        let i = 0;
+        i < platforms.length;
+        i++
+    ) {
+
+        const p =
+            platforms[i];
+
+
+        if (
+            p.x + p.w <
+                left - 100 ||
+            p.x >
+                right + 100
+        ) {
+
+            continue;
+
+        }
+
+
+        if (
+            right <= p.x ||
+            left >= p.x + p.w
+        ) {
+
+            continue;
+
+        }
+
+
+        if (
+            velocityY >= 0 &&
+            previousBottom <= p.y &&
+            bottom >= p.y
+        ) {
+
+            playerY =
+                p.y -
+                PLAYER_HITBOX_HEIGHT -
+                PLAYER_HITBOX_OFFSET_Y;
+
+            velocityY =
+                0;
+
+            grounded =
+                true;
+
+        }
+
+    }
+
+}
+
+
+/* =========================================================
+   SPIKE COLLISION
+========================================================= */
+
+function updateSpikes() {
+
+    if (
+        velocityY <= 0
+    ) {
+
+        return;
+
+    }
+
+
+    const hitbox =
+        getPlayerHitbox();
+
+
+    const foot =
+        hitbox.y +
+        hitbox.h;
+
+    const previousFoot =
+        foot -
+        velocityY;
+
+
+    const points = [
+
+        hitbox.x + 4,
+
+        hitbox.x +
+        hitbox.w / 2,
+
+        hitbox.x +
+        hitbox.w -
+        4
+
+    ];
+
+
+    for (
+        let i = 0;
+        i < spikes.length;
+        i++
+    ) {
+
+        const spike =
+            spikes[i];
+
+
+        if (
+            spike.x + 36 <
+                hitbox.x - 40 ||
+            spike.x >
+                hitbox.x +
+                hitbox.w +
+                40
+        ) {
+
+            continue;
+
+        }
+
+
+        const center =
+            spike.x + 18;
+
+
+        for (
+            let j = 0;
+            j < points.length;
+            j++
+        ) {
+
+            const x =
+                points[j];
+
+
+            if (
+                x < spike.x ||
+                x > spike.x + 36
+            ) {
+
+                continue;
+
+            }
+
+
+            const surface =
+                spike.y +
+                Math.abs(
+                    x - center
+                );
+
+
+            if (
+                previousFoot <= surface &&
+                foot >= surface
+            ) {
+
+                die();
+
+                return;
+
+            }
+
+        }
+
+    }
+
+}
+
+
+/* =========================================================
+   RANGED ENEMY UPDATE
+   ★ 踏んだら倒せる
+========================================================= */
+
+function updateRangedEnemies(now) {
+
+    const playerHitbox =
+        getPlayerHitbox();
+
+
+    const minX =
+        playerX - 1400;
+
+    const maxX =
+        playerX + 1400;
+
+
+    for (
+        let i = 0;
+        i < rangedEnemies.length;
+        i++
+    ) {
+
+        const enemy =
+            rangedEnemies[i];
+
+
+        /* 倒された敵は完全に無効 */
+
+        if (
+            !enemy.alive
+        ) {
+
+            continue;
+
+        }
+
+
+        if (
+            enemy.x < minX ||
+            enemy.x > maxX
+        ) {
+
+            continue;
+
+        }
+
+
+        const enemyHitbox =
+            getEnemyHitbox(enemy);
+
+
+        /* =========================
+           プレイヤーと接触
+        ========================= */
+
+        if (
+            rectsOverlap(
+                playerHitbox.x,
+                playerHitbox.y,
+                playerHitbox.w,
+                playerHitbox.h,
+
+                enemyHitbox.x,
+                enemyHitbox.y,
+                enemyHitbox.w,
+                enemyHitbox.h
+            )
+        ) {
+
+            const previousBottom =
+                playerHitbox.y +
+                playerHitbox.h -
+                velocityY;
+
+
+            /*
+               上から踏んだか判定
+
+               previousBottom が敵の上側より
+               上にあり、落下中なら踏み潰し
+            */
+
+            if (
+                velocityY > 0 &&
+                previousBottom <=
+                    enemyHitbox.y + 14
+            ) {
+
+                /* ★ 銃の敵を倒す */
+
+                enemy.alive =
+                    false;
+
+                /* ★ 踏んだ反動 */
+
+                velocityY =
+                    -JUMP_POWER * 0.7;
+
+                grounded =
+                    false;
+
+                continue;
+
+            }
+
+            /*
+               横・下から当たった場合
+               プレイヤー死亡
+            */
+
+            else {
+
+                die();
+
+                return;
+
+            }
+
+        }
+
+
+        /* =========================
+           銃撃
+        ========================= */
+
+        if (
+            now -
+            enemy.lastShot >=
+            enemy.fireRate
+        ) {
+
+            if (
+                enemy.x === 9600
+            ) {
+
+                enemy.shotCount++;
+
+
+                if (
+                    enemy.shotCount % 2 === 0
+                ) {
+
+                    createBullet(enemy);
+
+                }
+
+            }
+
+            else {
+
+                createBullet(enemy);
+
+            }
+
+
+            enemy.lastShot =
+                now;
+
+        }
+
+    }
+
+}
+
+
+/* =========================================================
+   CREATE BULLET
+========================================================= */
+
+function createBullet(enemy) {
+
+    if (
+        bullets.length >=
+        MAX_BULLETS
+    ) {
+
+        return;
+
+    }
+
+
+    bullets.push({
+
+        x:
+            enemy.x - 5,
+
+        y:
+            enemy.y + 3,
+
+        vx:
+            -1
+
+    });
+
+}
+
+
+/* =========================================================
+   BULLET UPDATE
+========================================================= */
+
+function updateBullets() {
+
+    for (
+        let i =
+            bullets.length - 1;
+
+        i >= 0;
+
+        i--
+    ) {
+
+        const bullet =
+            bullets[i];
+
+
+        bullet.x +=
+            bullet.vx;
+
+
+        if (
+            bullet.x <
+            playerX - 1600
+        ) {
+
+            bullets.splice(
+                i,
+                1
+            );
+
+            continue;
+
+        }
+
+
+        const hitbox =
+            getPlayerHitbox();
+
+
+        if (
+            rectsOverlap(
+                bullet.x,
+                bullet.y,
+                16,
+                10,
+
+                hitbox.x,
+                hitbox.y,
+                hitbox.w,
+                hitbox.h
+            )
+        ) {
+
+            die();
+
+            return;
+
+        }
+
+    }
+
+}
+
+
+/* =========================================================
+   MELEE UPDATE
+========================================================= */
+
+function updateMeleeEnemies() {
+
+    for (
+        let i = 0;
+        i < meleeEnemies.length;
+        i++
+    ) {
+
+        const enemy =
+            meleeEnemies[i];
+
+
+        if (
+            !enemy.alive
+        ) {
+
+            continue;
+
+        }
+
+
+        if (
+            Math.abs(
+                enemy.x -
+                playerX
+            ) > 1400
+        ) {
+
+            continue;
+
+        }
+
+
+        let enemyPlatform =
+            null;
+
+
+        for (
+            let j = 0;
+            j < platforms.length;
+            j++
+        ) {
+
+            const p =
+                platforms[j];
+
+
+            if (
+                enemy.x +
+                MELEE_HITBOX_WIDTH <
+                    p.x ||
+                enemy.x >
+                    p.x + p.w
+            ) {
+
+                continue;
+
+            }
+
+
+            if (
+                enemy.y +
+                MELEE_HITBOX_HEIGHT >=
+                    p.y - 2 &&
+                enemy.y +
+                MELEE_HITBOX_HEIGHT <=
+                    p.y + 5
+            ) {
+
+                enemyPlatform =
+                    p;
+
+                break;
+
+            }
+
+        }
+
+
+        if (
+            enemyPlatform !== null
+        ) {
+
+            const hitbox =
+                getPlayerHitbox();
+
+            const playerBottom =
+                hitbox.y +
+                hitbox.h;
+
+            const sameHeight =
+                Math.abs(
+                    playerBottom -
+                    enemyPlatform.y
+                ) < 15;
+
+            const playerCenter =
+                hitbox.x +
+                hitbox.w / 2;
+
+            const samePlatform =
+                playerCenter >=
+                    enemyPlatform.x &&
+                playerCenter <=
+                    enemyPlatform.x +
+                    enemyPlatform.w;
+
+
+            if (
+                sameHeight &&
+                samePlatform
+            ) {
+
+                const distance =
+                    Math.abs(
+                        enemy.x -
+                        playerX
+                    );
+
+
+                if (
+                    distance < 450
+                ) {
+
+                    if (
+                        playerX <
+                        enemy.x
+                    ) {
+
+                        enemy.x -=
+                            enemy.speed;
+
+                    }
+
+                    else {
+
+                        enemy.x +=
+                            enemy.speed;
+
+                    }
+
+
+                    const minX =
+                        enemyPlatform.x;
+
+                    const maxX =
+                        enemyPlatform.x +
+                        enemyPlatform.w -
+                        MELEE_HITBOX_WIDTH;
+
+
+                    if (
+                        enemy.x <
+                        minX
+                    ) {
+
+                        enemy.x =
+                            minX;
+
+                    }
+
+
+                    if (
+                        enemy.x >
+                        maxX
+                    ) {
+
+                        enemy.x =
+                            maxX;
+
+                    }
+
+                }
+
+            }
+
+        }
+
+
+        const hitbox =
+            getPlayerHitbox();
+
+        const enemyHitbox =
+            getMeleeEnemyHitbox(
+                enemy
+            );
+
+
+        if (
+            rectsOverlap(
+                hitbox.x,
+                hitbox.y,
+                hitbox.w,
+                hitbox.h,
+
+                enemyHitbox.x,
+                enemyHitbox.y,
+                enemyHitbox.w,
+                enemyHitbox.h
+            )
+        ) {
+
+            const previousBottom =
+                hitbox.y +
+                hitbox.h -
+                velocityY;
+
+
+            if (
+                velocityY > 0 &&
+                previousBottom <=
+                    enemyHitbox.y + 12
+            ) {
+
+                enemy.alive =
+                    false;
+
+                velocityY =
+                    -JUMP_POWER * 0.7;
+
+                grounded =
+                    false;
+
+            }
+
+            else {
+
+                die();
+
+                return;
+
+            }
+
+        }
+
+    }
+
+}
+
+
+/* =========================================================
+   FALL
+========================================================= */
+
+function updateFall() {
+
+    if (
+        playerY >
+        screenHeight + 150
+    ) {
+
+        die();
+
+    }
+
+}
+
+
+/* =========================================================
+   GOAL
+========================================================= */
+
+function updateGoal() {
+
+    const hitbox =
+        getPlayerHitbox();
+
+
+    if (
+        rectsOverlap(
+            hitbox.x,
+            hitbox.y,
+            hitbox.w,
+            hitbox.h,
+
+            goal.x,
+            goal.y,
+            goal.w,
+            goal.h
+        )
+    ) {
+
+        win();
+
+    }
+
+}
+
+
+/* =========================================================
+   CAMERA
+========================================================= */
+
+function updateCamera() {
+
+    let target =
+        playerX -
+        screenWidth *
+        0.35;
+
+
+    if (
+        target < 0
+    ) {
+
+        target =
+            0;
+
+    }
+
+
+    const maxCamera =
+        Math.max(
+            0,
+            WORLD_WIDTH -
+            screenWidth
+        );
+
+
+    if (
+        target >
+        maxCamera
+    ) {
+
+        target =
+            maxCamera;
+
+    }
+
+
+    cameraX +=
+        (
+            target -
+            cameraX
+        ) *
+        CAMERA_SMOOTH;
+
+}
+
+
+/* =========================================================
+   UPDATE
+========================================================= */
+
+function update(now) {
+
+    updateHorizontal();
+
+    updateJump();
+
+    updateGravity();
+
+    updatePlatforms();
+
+    updateSpikes();
+
+
+    if (
+        !gameStarted
+    ) {
+
+        return;
+
+    }
+
+
+    updateRangedEnemies(
+        now
+    );
+
+
+    if (
+        !gameStarted
+    ) {
+
+        return;
+
+    }
+
+
+    updateMeleeEnemies();
+
+
+    if (
+        !gameStarted
+    ) {
+
+        return;
+
+    }
+
+
+    updateBullets();
+
+
+    if (
+        !gameStarted
+    ) {
+
+        return;
+
+    }
+
+
+    updateFall();
+
+
+    if (
+        !gameStarted
+    ) {
+
+        return;
+
+    }
+
+
+    updateGoal();
+
+
+    if (
+        !gameStarted
+    ) {
+
+        return;
+
+    }
+
+
+    updateCamera();
+
+}
+
+
+/* =========================================================
+   DRAW BACKGROUND
+========================================================= */
+
+function drawBackground() {
+
+    ctx.fillStyle =
+        "#000000";
+
+    ctx.fillRect(
+        0,
+        0,
+        screenWidth,
+        screenHeight
+    );
+
+}
+
+
+/* =========================================================
+   DRAW PLATFORM
+========================================================= */
+
+function drawPlatform(p) {
+
+    const x =
+        p.x - cameraX;
+
+    const y =
+        p.y;
+
+
+    if (
+        x + p.w < 0 ||
+        x > screenWidth
+    ) {
+
+        return;
+
+    }
+
+
+    ctx.fillStyle =
+        "#555";
+
+    ctx.fillRect(
+        x,
+        y,
+        p.w,
+        p.h
+    );
+
+
+    ctx.fillStyle =
+        "#777";
+
+    ctx.fillRect(
+        x,
+        y,
+        p.w,
+        4
+    );
+
+
+    ctx.fillStyle =
+        "#333";
+
+    ctx.fillRect(
+        x,
+        y + p.h - 4,
+        p.w,
+        4
+    );
+
+}
+
+
+/* =========================================================
+   DRAW SPIKE
+========================================================= */
+
+function drawSpike(spike) {
+
+    const x =
+        spike.x -
+        cameraX;
+
+    const y =
+        spike.y;
+
+
+    if (
+        x + 36 < 0 ||
+        x > screenWidth
+    ) {
+
+        return;
+
+    }
+
+
+    ctx.fillStyle =
+        "#222";
+
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+        x,
+        y + 36
+    );
+
+    ctx.lineTo(
+        x + 18,
+        y
+    );
+
+    ctx.lineTo(
+        x + 36,
+        y + 36
+    );
+
+    ctx.closePath();
+
+    ctx.fill();
+
+
+    ctx.fillStyle =
+        "#555";
+
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+        x + 18,
+        y
+    );
+
+    ctx.lineTo(
+        x + 22,
+        y + 36
+    );
+
+    ctx.lineTo(
+        x + 18,
+        y + 36
+    );
+
+    ctx.closePath();
+
+    ctx.fill();
+
+}
+
+
+/* =========================================================
+   IMAGES
+========================================================= */
+
+const playerImage =
+    new Image();
+
+playerImage.src =
+    "player.png";
+
+let playerImageLoaded =
+    false;
+
+
+playerImage.onload =
+    function() {
+
+        playerImageLoaded =
+            true;
+
+        render();
+
+    };
+
+
+playerImage.onerror =
+    function() {
+
+        playerImageLoaded =
+            false;
+
+        console.warn(
+            "player.pngを読み込めません。代替描画を使用します。"
+        );
+
+        render();
+
+    };
+
+
+const rangedEnemyImage =
+    new Image();
+
+rangedEnemyImage.src =
+    "rangedEnemy.png";
+
+let rangedEnemyImageLoaded =
+    false;
+
+
+rangedEnemyImage.onload =
+    function() {
+
+        rangedEnemyImageLoaded =
+            true;
+
+        render();
+
+    };
+
+
+rangedEnemyImage.onerror =
+    function() {
+
+        rangedEnemyImageLoaded =
+            false;
+
+        console.warn(
+            "rangedEnemy.pngを読み込めません。代替描画を使用します。"
+        );
+
+        render();
+
+    };
+
+
+const meleeEnemyImage =
+    new Image();
+
+meleeEnemyImage.src =
+    "meleeEnemy.png";
+
+let meleeEnemyImageLoaded =
+    false;
+
+
+meleeEnemyImage.onload =
+    function() {
+
+        meleeEnemyImageLoaded =
+            true;
+
+        render();
+
+    };
+
+
+meleeEnemyImage.onerror =
+    function() {
+
+        meleeEnemyImageLoaded =
+            false;
+
+        console.warn(
+            "meleeEnemy.pngを読み込めません。代替描画を使用します。"
+        );
+
+        render();
+
+    };
+
+
+/* =========================================================
+   DRAW PLAYER
+========================================================= */
+
+function drawPlayer() {
+
+    const x =
+        playerX -
+        cameraX;
+
+    const y =
+        playerY;
+
+
+    if (
+        playerImageLoaded
+    ) {
+
+        ctx.drawImage(
+            playerImage,
+            x,
+            y,
+            PLAYER_WIDTH,
+            PLAYER_HEIGHT
+        );
+
+        return;
+
+    }
+
+
+    ctx.fillStyle =
+        "#ff4444";
+
+
+    ctx.fillRect(
+        x,
+        y,
+        PLAYER_WIDTH,
+        PLAYER_HEIGHT
+    );
+
+
+    ctx.strokeStyle =
+        "#9b0000";
+
+    ctx.lineWidth =
+        3;
+
+
+    ctx.strokeRect(
+        x + 1.5,
+        y + 1.5,
+        PLAYER_WIDTH - 3,
+        PLAYER_HEIGHT - 3
+    );
+
+
+    ctx.fillStyle =
+        "#fff";
+
+
+    ctx.fillRect(
+        x + 8,
+        y + 8,
+        5,
+        5
+    );
+
+    ctx.fillRect(
+        x + 23,
+        y + 8,
+        5,
+        5
+    );
+
+}
+
+
+/* =========================================================
+   DRAW RANGED ENEMY
+========================================================= */
+
+function drawRangedEnemy(enemy) {
+
+    if (
+        !enemy.alive
+    ) {
+
+        return;
+
+    }
+
+
+    const x =
+        enemy.x -
+        cameraX -
+        ENEMY_HITBOX_OFFSET_X;
+
+
+    const y =
+        enemy.y -
+        (
+            ENEMY_HEIGHT -
+            ENEMY_HITBOX_HEIGHT
+        );
+
+
+    if (
+        x + ENEMY_WIDTH < 0 ||
+        x > screenWidth
+    ) {
+
+        return;
+
+    }
+
+
+    if (
+        rangedEnemyImageLoaded
+    ) {
+
+        ctx.drawImage(
+            rangedEnemyImage,
+            x,
+            y,
+            ENEMY_WIDTH,
+            ENEMY_HEIGHT
+        );
+
+        return;
+
+    }
+
+
+    ctx.fillStyle =
+        "#5c2d91";
+
+
+    ctx.fillRect(
+        x,
+        y,
+        ENEMY_WIDTH,
+        ENEMY_HEIGHT
+    );
+
+
+    ctx.strokeStyle =
+        "#35165c";
+
+    ctx.lineWidth =
+        4;
+
+
+    ctx.strokeRect(
+        x + 2,
+        y + 2,
+        ENEMY_WIDTH - 4,
+        ENEMY_HEIGHT - 4
+    );
+
+
+    ctx.fillStyle =
+        "#fff";
+
+
+    ctx.fillRect(
+        x + 8,
+        y + 8,
+        5,
+        5
+    );
+
+    ctx.fillRect(
+        x + 25,
+        y + 8,
+        5,
+        5
+    );
+
+
+    ctx.fillStyle =
+        "#ff5555";
+
+
+    ctx.fillRect(
+        x + 9,
+        y + ENEMY_HEIGHT - 15,
+        18,
+        6
+    );
+
+}
+
+
+/* =========================================================
+   DRAW MELEE
+========================================================= */
+
+function drawMeleeEnemy(enemy) {
+
+    if (
+        !enemy.alive
+    ) {
+
+        return;
+
+    }
+
+
+    const x =
+        enemy.x -
+        cameraX -
+        MELEE_HITBOX_OFFSET_X;
+
+
+    const y =
+        enemy.y -
+        MELEE_HITBOX_OFFSET_Y;
+
+
+    if (
+        x + ENEMY_WIDTH < 0 ||
+        x > screenWidth
+    ) {
+
+        return;
+
+    }
+
+
+    if (
+        meleeEnemyImageLoaded
+    ) {
+
+        ctx.drawImage(
+            meleeEnemyImage,
+            x,
+            y,
+            ENEMY_WIDTH,
+            ENEMY_HEIGHT
+        );
+
+        return;
+
+    }
+
+
+    ctx.fillStyle =
+        "#b83280";
+
+
+    ctx.fillRect(
+        x,
+        y,
+        ENEMY_WIDTH,
+        ENEMY_HEIGHT
+    );
+
+
+    ctx.strokeStyle =
+        "#651443";
+
+    ctx.lineWidth =
+        4;
+
+
+    ctx.strokeRect(
+        x + 2,
+        y + 2,
+        ENEMY_WIDTH - 4,
+        ENEMY_HEIGHT - 4
+    );
+
+
+    ctx.fillStyle =
+        "#fff";
+
+
+    ctx.fillRect(
+        x + 8,
+        y + 8,
+        5,
+        5
+    );
+
+    ctx.fillRect(
+        x + 25,
+        y + 8,
+        5,
+        5
+    );
+
+
+    ctx.strokeStyle =
+        "#ddd";
+
+    ctx.lineWidth =
+        5;
+
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+        x + ENEMY_WIDTH - 6,
+        y + ENEMY_HEIGHT - 11
+    );
+
+    ctx.lineTo(
+        x + ENEMY_WIDTH + 18,
+        y + 20
+    );
+
+    ctx.stroke();
+
+
+    ctx.strokeStyle =
+        "#704214";
+
+    ctx.lineWidth =
+        4;
+
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+        x + ENEMY_WIDTH - 9,
+        y + ENEMY_HEIGHT - 8
+    );
+
+    ctx.lineTo(
+        x + ENEMY_WIDTH + 1,
+        y + ENEMY_HEIGHT - 18
+    );
+
+    ctx.stroke();
+
+}
+
+
+/* =========================================================
+   DRAW BULLET
+========================================================= */
+
+function drawBullet(bullet) {
+
+    const x =
+        bullet.x -
+        cameraX;
+
+    const y =
+        bullet.y;
+
+
+    if (
+        x + 16 < 0 ||
+        x > screenWidth
+    ) {
+
+        return;
+
+    }
+
+
+    ctx.fillStyle =
+        "#2196ff";
+
+
+    ctx.fillRect(
+        x,
+        y,
+        16,
+        10
+    );
+
+
+    ctx.fillStyle =
+        "#fff3a0";
+
+
+    ctx.fillRect(
+        x + 2,
+        y + 2,
+        8,
+        3
+    );
+
+}
+
+
+/* =========================================================
+   DRAW GOAL
+========================================================= */
+
+function drawGoal() {
+
+    const x =
+        goal.x -
+        cameraX;
+
+    const y =
+        goal.y;
+
+
+    if (
+        x + goal.w < 0 ||
+        x > screenWidth
+    ) {
+
+        return;
+
+    }
+
+
+    ctx.fillStyle =
+        "#ffd700";
+
+
+    ctx.fillRect(
+        x,
+        y,
+        goal.w,
+        goal.h
+    );
+
+
+    ctx.strokeStyle =
+        "#a87900";
+
+    ctx.lineWidth =
+        5;
+
+
+    ctx.strokeRect(
+        x + 2.5,
+        y + 2.5,
+        goal.w - 5,
+        goal.h - 5
+    );
+
+
+    ctx.fillStyle =
+        "#5a4200";
+
+    ctx.font =
+        "bold 10px Arial";
+
+    ctx.textAlign =
+        "center";
+
+    ctx.textBaseline =
+        "middle";
+
+
+    ctx.fillText(
+        "GOAL",
+        x + goal.w / 2,
+        y + goal.h / 2
+    );
+
+}
+
+
+/* =========================================================
+   RENDER
+========================================================= */
+
+function render() {
+
+    if (
+        !ctx ||
+        !canvas
+    ) {
+
+        return;
+
+    }
+
+
+    drawBackground();
+
+
+    for (
+        let i = 0;
+        i < platforms.length;
+        i++
+    ) {
+
+        drawPlatform(
+            platforms[i]
+        );
+
+    }
+
+
+    for (
+        let i = 0;
+        i < spikes.length;
+        i++
+    ) {
+
+        drawSpike(
+            spikes[i]
+        );
+
+    }
+
+
+    drawGoal();
+
+
+    for (
+        let i = 0;
+        i < rangedEnemies.length;
+        i++
+    ) {
+
+        drawRangedEnemy(
+            rangedEnemies[i]
+        );
+
+    }
+
+
+    for (
+        let i = 0;
+        i < meleeEnemies.length;
+        i++
+    ) {
+
+        drawMeleeEnemy(
+            meleeEnemies[i]
+        );
+
+    }
+
+
+    for (
+        let i = 0;
+        i < bullets.length;
+        i++
+    ) {
+
+        drawBullet(
+            bullets[i]
+        );
+
+    }
+
+
+    drawPlayer();
+
+}
+
+
+/* =========================================================
+   TIMER
+========================================================= */
+
+function updateTimer(now) {
+
+    if (
+        now -
+        lastTimerUpdate <
+        100
+    ) {
+
+        return;
+
+    }
+
+
+    lastTimerUpdate =
+        now;
+
+
+    const elapsed =
+        (
+            now -
+            startTime
+        ) / 1000;
+
+
+    timerElement.textContent =
+        "TIME: " +
+        elapsed.toFixed(2);
+
+}
+
+
+/* =========================================================
+   DIE
+========================================================= */
+
+function die() {
+
+    if (
+        !gameStarted
+    ) {
+
+        return;
+
+    }
+
+
+    gameStarted =
+        false;
+
+    gameFinished =
+        true;
+
+
+    messageTitle.textContent =
+        "💀 死にましたｗ";
+
+
+    messageTime.textContent =
+        "Rキー またはボタンで\nもう一度挑戦";
+
+
+    message.style.display =
+        "block";
+
+
+    render();
+
+}
+
+
+/* =========================================================
+   WIN
+========================================================= */
+
+function win() {
+
+    if (
+        !gameStarted
+    ) {
+
+        return;
+
+    }
+
+
+    gameStarted =
+        false;
+
+    gameFinished =
+        true;
+
+
+    const time =
+        (
+            performance.now() -
+            startTime
+        ) / 1000;
+
+
+    const formatted =
+        time.toFixed(2);
+
+
+    messageTitle.textContent =
+        "🏆 GOAL!!";
+
+
+    messageTime.textContent =
+        formatted +
+        " 秒";
+
+
+    if (
+        bestTime === null ||
+        time < Number(bestTime)
+    ) {
+
+        bestTime =
+            time;
+
+
+        try {
+
+            localStorage.setItem(
+                "athleticBestTime",
+                String(time)
+            );
+
+        } catch (e) {
+
+            console.warn(
+                "BEST記録を保存できません:",
+                e
+            );
+
+        }
+
+
+        bestElement.textContent =
+            "BEST: " +
+            formatted +
+            " 秒";
+
+
+        messageTime.textContent +=
+            "\n🎉 NEW RECORD!!";
+
+    }
+
+
+    message.style.display =
+        "block";
+
+
+    render();
+
+}
+
+
+/* =========================================================
+   GAME LOOP
+========================================================= */
+
+function gameLoop(now) {
+
+    try {
+
+        if (
+            gameStarted
+        ) {
+
+            update(now);
+
+
+            if (
+                gameStarted
+            ) {
+
+                updateTimer(now);
+
+            }
+
+
+            render();
+
+        }
+
+    } catch (error) {
+
+        console.error(
+            "GAME LOOP ERROR:",
+            error
+        );
+
+    }
+
+
+    requestAnimationFrame(
+        gameLoop
+    );
+
+}
+
+
+/* =========================================================
+   INITIALIZE
+========================================================= */
+
+try {
+
+    resizeCanvas();
+
+} catch (error) {
+
+    console.error(
+        "Canvas initialization error:",
+        error
+    );
+
+    screenWidth =
+        Math.max(1, window.innerWidth);
+
+    screenHeight =
+        Math.max(1, window.innerHeight);
+
+    canvas.width =
+        screenWidth;
+
+    canvas.height =
+        screenHeight;
+
+    render();
+
+}
+
+
+requestAnimationFrame(
+    gameLoop
+);
+
+</script>
+
+</body>
+</html>
