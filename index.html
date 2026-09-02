@@ -76,6 +76,13 @@ body {
     color: #ffd700;
 }
 
+#discordUser {
+    margin-top: 8px;
+    font-size: 13px;
+    color: #8ea8ff;
+    pointer-events: none;
+}
+
 
 /* =========================
    CONTROLS
@@ -200,6 +207,10 @@ body {
             BEST: --
         </div>
 
+        <div id="discordUser">
+            Discord: 未ログイン
+        </div>
+
     </div>
 
 
@@ -284,6 +295,9 @@ const timerElement =
 const bestElement =
     document.getElementById("best");
 
+const discordUserElement =
+    document.getElementById("discordUser");
+
 const startScreen =
     document.getElementById("startScreen");
 
@@ -301,6 +315,145 @@ const messageTime =
 
 const restartButton =
     document.getElementById("restartButton");
+
+
+/* =========================================================
+   DISCORD
+========================================================= */
+
+const API_URL =
+    "https://shinji-game-api.0108yudaiohta.workers.dev";
+
+
+async function loadDiscordUser() {
+
+    try {
+
+        const params =
+            new URLSearchParams(
+                window.location.search
+            );
+
+
+        /* =========================
+           OAuthから戻ってきた場合
+        ========================= */
+
+        const sessionFromUrl =
+            params.get("session");
+
+
+        if (sessionFromUrl) {
+
+            sessionStorage.setItem(
+                "discordSession",
+                sessionFromUrl
+            );
+
+
+            /*
+                URLからsessionを削除
+
+                例：
+
+                ?session=xxxxx
+
+                ↓
+
+                /
+            */
+
+            window.history.replaceState(
+                {},
+                document.title,
+                window.location.pathname
+            );
+
+        }
+
+
+        /* =========================
+           保存済みセッション取得
+        ========================= */
+
+        const session =
+            sessionStorage.getItem(
+                "discordSession"
+            );
+
+
+        if (!session) {
+
+            discordUserElement.textContent =
+                "Discord: 未ログイン";
+
+            return;
+
+        }
+
+
+        /* =========================
+           Workerへユーザー情報確認
+        ========================= */
+
+        const response =
+            await fetch(
+                API_URL + "/api/me",
+                {
+                    method: "GET",
+
+                    headers: {
+                        "Authorization":
+                            "Bearer " + session
+                    }
+                }
+            );
+
+
+        /* =========================
+           セッション無効
+        ========================= */
+
+        if (!response.ok) {
+
+            sessionStorage.removeItem(
+                "discordSession"
+            );
+
+            discordUserElement.textContent =
+                "Discord: 未ログイン";
+
+            return;
+
+        }
+
+
+        /* =========================
+           ユーザー情報取得
+        ========================= */
+
+        const user =
+            await response.json();
+
+
+        discordUserElement.textContent =
+            "Discord: " +
+            user.discord_name;
+
+    }
+    catch (error) {
+
+        console.error(
+            "Discord情報取得エラー:",
+            error
+        );
+
+        discordUserElement.textContent =
+            "Discord: 未ログイン";
+
+    }
+
+}
 
 
 /* =========================================================
@@ -757,7 +910,6 @@ let lastTimerUpdate =
    BEST TIME
 ========================================================= */
 
-
 let bestTime =
     null;
 
@@ -961,8 +1113,6 @@ function clearBullets() {
 ========================================================= */
 
 function startGame() {
-
-    /* ★ 死亡・ゴール画面を完全に消す */
 
     message.style.display =
         "none";
@@ -1564,7 +1714,6 @@ function updateSpikes() {
 
 /* =========================================================
    RANGED ENEMY UPDATE
-   ★ 踏んだら倒せる
 ========================================================= */
 
 function updateRangedEnemies(now) {
@@ -1590,8 +1739,6 @@ function updateRangedEnemies(now) {
             rangedEnemies[i];
 
 
-        /* 倒された敵は完全に無効 */
-
         if (
             !enemy.alive
         ) {
@@ -1615,10 +1762,6 @@ function updateRangedEnemies(now) {
             getEnemyHitbox(enemy);
 
 
-        /* =========================
-           プレイヤーと接触
-        ========================= */
-
         if (
             rectsOverlap(
                 playerHitbox.x,
@@ -1639,25 +1782,14 @@ function updateRangedEnemies(now) {
                 velocityY;
 
 
-            /*
-               上から踏んだか判定
-
-               previousBottom が敵の上側より
-               上にあり、落下中なら踏み潰し
-            */
-
             if (
                 velocityY > 0 &&
                 previousBottom <=
                     enemyHitbox.y + 14
             ) {
 
-                /* ★ 銃の敵を倒す */
-
                 enemy.alive =
                     false;
-
-                /* ★ 踏んだ反動 */
 
                 velocityY =
                     -JUMP_POWER * 0.7;
@@ -1669,11 +1801,6 @@ function updateRangedEnemies(now) {
 
             }
 
-            /*
-               横・下から当たった場合
-               プレイヤー死亡
-            */
-
             else {
 
                 die();
@@ -1684,10 +1811,6 @@ function updateRangedEnemies(now) {
 
         }
 
-
-        /* =========================
-           銃撃
-        ========================= */
 
         if (
             now -
@@ -3325,6 +3448,13 @@ try {
     render();
 
 }
+
+
+/* =========================================================
+   DISCORD USER LOAD
+========================================================= */
+
+loadDiscordUser();
 
 
 requestAnimationFrame(
