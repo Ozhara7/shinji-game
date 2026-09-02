@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="ja">
 
@@ -1600,16 +1599,70 @@ let lastTimerUpdate =
    BEST TIME
 ========================================================= */
 
+/*
+ * BESTのバージョン。
+ *
+ * v2 に変更したことで、
+ * 以前保存されていたBESTを今回だけ削除する。
+ *
+ * 一度 v2 が保存されたあとは、
+ * 新しく作ったBESTは普通に残る。
+ */
+
+const BEST_VERSION =
+    "v2";
+
+
 let bestTime =
     null;
 
 
 try {
 
-    bestTime =
+    const savedBestVersion =
         localStorage.getItem(
+            "athleticBestVersion"
+        );
+
+
+    /*
+     * まだv2を使っていない場合
+     * → 古いBESTを一度だけ削除
+     */
+
+    if (
+        savedBestVersion !==
+        BEST_VERSION
+    ) {
+
+        localStorage.removeItem(
             "athleticBestTime"
         );
+
+
+        localStorage.setItem(
+            "athleticBestVersion",
+            BEST_VERSION
+        );
+
+
+        bestTime =
+            null;
+
+    }
+    else {
+
+        /*
+         * v2がすでに適用済みなら
+         * 保存されているBESTを読み込む
+         */
+
+        bestTime =
+            localStorage.getItem(
+                "athleticBestTime"
+            );
+
+    }
 
 }
 catch (e) {
@@ -1622,7 +1675,9 @@ catch (e) {
 }
 
 
-if (bestTime !== null) {
+if (
+    bestTime !== null
+) {
 
     bestElement.textContent =
         "BEST: " +
@@ -4363,4 +4418,3 @@ requestAnimationFrame(
 
 </body>
 </html>
-```
