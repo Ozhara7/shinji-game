@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="ja">
 
@@ -113,7 +114,7 @@ body {
 
 
 /* =========================
-   ALWAYS ON RANKING
+   RANKING
 ========================= */
 
 #rankingPanel {
@@ -206,39 +207,28 @@ body {
 
 .rankingName {
     overflow: hidden;
-
     text-overflow: ellipsis;
-
     white-space: nowrap;
-
     font-size: 13px;
 }
 
 .rankingTime {
     text-align: right;
-
     font-size: 13px;
-
     font-weight: bold;
 }
 
 .rankingEmpty {
     padding: 20px 10px;
-
     text-align: center;
-
     color: #aaa;
-
     font-size: 13px;
 }
 
 .rankingError {
     padding: 20px 10px;
-
     text-align: center;
-
     color: #ff7777;
-
     font-size: 13px;
 }
 
@@ -277,7 +267,6 @@ body {
 
 #startBox h1 {
     margin: 0 0 15px;
-
     font-size: 34px;
 }
 
@@ -360,16 +349,12 @@ body {
    MOBILE
 ========================= */
 
-@media (
-    max-width: 900px
-) {
+@media (max-width: 900px) {
 
     #rankingPanel {
         width: 280px;
-
         right: 10px;
         top: 10px;
-
         padding: 11px;
     }
 
@@ -384,7 +369,6 @@ body {
             70px;
 
         gap: 5px;
-
         padding: 5px 6px;
     }
 
@@ -403,9 +387,7 @@ body {
 }
 
 
-@media (
-    max-width: 600px
-) {
+@media (max-width: 600px) {
 
     #ui {
         left: 10px;
@@ -443,13 +425,11 @@ body {
 
     #rankingTitle {
         font-size: 14px;
-
         margin-bottom: 2px;
     }
 
     #rankingStatus {
         font-size: 9px;
-
         margin-bottom: 5px;
     }
 
@@ -460,9 +440,7 @@ body {
             62px;
 
         padding: 4px;
-
         margin-bottom: 2px;
-
         gap: 3px;
     }
 
@@ -526,7 +504,7 @@ body {
 
 
     <!-- =========================
-         ALWAYS ON WORLD RANKING
+         WORLD RANKING
     ========================= -->
 
     <div id="rankingPanel">
@@ -614,7 +592,6 @@ body {
 
 <script>
 
-
 /* =========================================================
    CANVAS
 ========================================================= */
@@ -626,6 +603,7 @@ const ctx =
     canvas.getContext("2d", {
         alpha: false
     });
+
 
 const RENDER_SCALE = 1;
 
@@ -666,20 +644,11 @@ const restartButton =
    RANKING DOM
 ========================================================= */
 
-const rankingPanel =
-    document.getElementById(
-        "rankingPanel"
-    );
-
 const rankingList =
-    document.getElementById(
-        "rankingList"
-    );
+    document.getElementById("rankingList");
 
 const rankingStatus =
-    document.getElementById(
-        "rankingStatus"
-    );
+    document.getElementById("rankingStatus");
 
 
 /* =========================================================
@@ -708,9 +677,7 @@ async function loadDiscordUser() {
             params.get("session");
 
 
-        if (
-            sessionFromUrl
-        ) {
+        if (sessionFromUrl) {
 
             sessionStorage.setItem(
                 "discordSession",
@@ -733,9 +700,7 @@ async function loadDiscordUser() {
             );
 
 
-        if (
-            !session
-        ) {
+        if (!session) {
 
             discordUserElement.textContent =
                 "Discord: 未ログイン";
@@ -759,9 +724,7 @@ async function loadDiscordUser() {
             );
 
 
-        if (
-            !response.ok
-        ) {
+        if (!response.ok) {
 
             sessionStorage.removeItem(
                 "discordSession"
@@ -803,9 +766,7 @@ async function loadDiscordUser() {
    SAVE SCORE
 ========================================================= */
 
-async function saveScoreToServer(
-    time
-) {
+async function saveScoreToServer(time) {
 
     const session =
         sessionStorage.getItem(
@@ -813,9 +774,7 @@ async function saveScoreToServer(
         );
 
 
-    if (
-        !session
-    ) {
+    if (!session) {
 
         console.warn(
             "Discord未ログインのためランキング登録をスキップします。"
@@ -838,12 +797,6 @@ async function saveScoreToServer(
             );
 
 
-        console.log(
-            "D1へスコア送信:",
-            score
-        );
-
-
         const response =
             await fetch(
                 API_URL + "/api/score",
@@ -861,18 +814,14 @@ async function saveScoreToServer(
                     },
 
                     body: JSON.stringify({
-
-                        time:
-                            score
-
+                        time: score
                     })
 
                 }
             );
 
 
-        let data =
-            null;
+        let data = null;
 
 
         try {
@@ -883,22 +832,12 @@ async function saveScoreToServer(
         }
         catch (error) {
 
-            data =
-                null;
+            data = null;
 
         }
 
 
-        console.log(
-            "D1レスポンス:",
-            response.status,
-            data
-        );
-
-
-        if (
-            !response.ok
-        ) {
+        if (!response.ok) {
 
             console.error(
                 "スコア保存失敗:",
@@ -923,12 +862,6 @@ async function saveScoreToServer(
             };
 
         }
-
-
-        console.log(
-            "スコア保存成功:",
-            data
-        );
 
 
         return {
@@ -983,14 +916,12 @@ async function loadRanking() {
                 API_URL + "/api/ranking",
                 {
                     method: "GET",
-
                     cache: "no-store"
                 }
             );
 
 
-        let data =
-            null;
+        let data = null;
 
 
         try {
@@ -1001,22 +932,12 @@ async function loadRanking() {
         }
         catch (error) {
 
-            data =
-                null;
+            data = null;
 
         }
 
 
-        console.log(
-            "ランキングAPI:",
-            response.status,
-            data
-        );
-
-
-        if (
-            !response.ok
-        ) {
+        if (!response.ok) {
 
             rankingStatus.textContent =
                 "ランキング取得失敗";
@@ -1032,9 +953,7 @@ async function loadRanking() {
 
         if (
             !data ||
-            !Array.isArray(
-                data.ranking
-            )
+            !Array.isArray(data.ranking)
         ) {
 
             rankingStatus.textContent =
@@ -1049,20 +968,11 @@ async function loadRanking() {
         }
 
 
-        /*
-         * 最大10人
-         */
-
         const ranking =
-            data.ranking.slice(
-                0,
-                10
-            );
+            data.ranking.slice(0, 5);
 
 
-        if (
-            ranking.length === 0
-        ) {
+        if (ranking.length === 0) {
 
             rankingStatus.textContent =
                 "まだ記録なし";
@@ -1096,47 +1006,32 @@ async function loadRanking() {
 
 
             const row =
-                document.createElement(
-                    "div"
-                );
-
+                document.createElement("div");
 
             row.className =
                 "rankingRow";
 
 
             const rank =
-                document.createElement(
-                    "div"
-                );
-
+                document.createElement("div");
 
             rank.className =
                 "rankingRank";
 
 
-            if (
-                item.rank === 1
-            ) {
+            if (item.rank === 1) {
 
-                rank.textContent =
-                    "🥇";
+                rank.textContent = "🥇";
 
             }
-            else if (
-                item.rank === 2
-            ) {
+            else if (item.rank === 2) {
 
-                rank.textContent =
-                    "🥈";
+                rank.textContent = "🥈";
 
             }
-            else if (
-                item.rank === 3
-            ) {
+            else if (item.rank === 3) {
 
-                rank.textContent =
-                    "🥉";
+                rank.textContent = "🥉";
 
             }
             else {
@@ -1148,14 +1043,10 @@ async function loadRanking() {
 
 
             const name =
-                document.createElement(
-                    "div"
-                );
-
+                document.createElement("div");
 
             name.className =
                 "rankingName";
-
 
             name.textContent =
                 item.discord_name ||
@@ -1163,38 +1054,21 @@ async function loadRanking() {
 
 
             const time =
-                document.createElement(
-                    "div"
-                );
-
+                document.createElement("div");
 
             time.className =
                 "rankingTime";
 
-
             time.textContent =
-                Number(
-                    item.time
-                ).toFixed(2) +
+                Number(item.time).toFixed(2) +
                 " 秒";
 
 
-            row.appendChild(
-                rank
-            );
+            row.appendChild(rank);
+            row.appendChild(name);
+            row.appendChild(time);
 
-            row.appendChild(
-                name
-            );
-
-            row.appendChild(
-                time
-            );
-
-
-            rankingList.appendChild(
-                row
-            );
+            rankingList.appendChild(row);
 
         }
 
@@ -1220,26 +1094,14 @@ async function loadRanking() {
 
 
 /* =========================================================
-   AUTO RANKING REFRESH
+   RANKING AUTO REFRESH
 ========================================================= */
-
-/*
- * 最初に取得
- */
 
 loadRanking();
 
 
-/*
- * 30秒ごとに更新
- */
-
 setInterval(
-    function() {
-
-        loadRanking();
-
-    },
+    loadRanking,
     30000
 );
 
@@ -1249,33 +1111,19 @@ setInterval(
 ========================================================= */
 
 let screenWidth =
-    Math.max(
-        1,
-        window.innerWidth
-    );
-
+    Math.max(1, window.innerWidth);
 
 let screenHeight =
-    Math.max(
-        1,
-        window.innerHeight
-    );
+    Math.max(1, window.innerHeight);
 
 
 function resizeCanvas() {
 
     screenWidth =
-        Math.max(
-            1,
-            window.innerWidth
-        );
-
+        Math.max(1, window.innerWidth);
 
     screenHeight =
-        Math.max(
-            1,
-            window.innerHeight
-        );
+        Math.max(1, window.innerHeight);
 
 
     canvas.width =
@@ -1299,13 +1147,10 @@ function resizeCanvas() {
 
 
     canvas.style.width =
-        screenWidth +
-        "px";
-
+        screenWidth + "px";
 
     canvas.style.height =
-        screenHeight +
-        "px";
+        screenHeight + "px";
 
 
     ctx.setTransform(
@@ -1367,14 +1212,41 @@ const PLAYER_HITBOX_OFFSET_Y =
     PLAYER_HEIGHT -
     PLAYER_HITBOX_HEIGHT;
 
+
+/*
+ * 60FPS時に従来と同じ
+ *
+ * 2.5 px/frame × 60
+ * = 150 px/sec
+ */
+
 const MOVE_SPEED =
-    2.5;
+    500;
+
+
+/*
+ * 従来の
+ *
+ * JUMP_POWER = 6
+ *
+ * GRAVITY = 0.05
+ *
+ * を時間ベースへ変換。
+ *
+ * 60FPS時：
+ *
+ * 初速 6px/frame
+ * → 360px/sec
+ *
+ * 重力 0.05px/frame²
+ * → 180px/sec²
+ */
 
 const JUMP_POWER =
-    6;
+    1100;
 
 const GRAVITY =
-    0.05;
+    2500;
 
 
 /* =========================================================
@@ -1538,7 +1410,7 @@ const rangedEnemies = [
     {
         x: 7360,
         y: 376,
-        fireRate: 1000,
+        fireRate: 2000,
         lastShot: 0,
         alive: true
     },
@@ -1566,7 +1438,7 @@ const meleeEnemies = [
         y: 475,
         originalX: 1450,
         originalY: 475,
-        speed: 1.2,
+        speed: 72,
         alive: true
     },
 
@@ -1575,7 +1447,7 @@ const meleeEnemies = [
         y: 315,
         originalX: 2820,
         originalY: 315,
-        speed: 1.2,
+        speed: 72,
         alive: true
     },
 
@@ -1584,7 +1456,7 @@ const meleeEnemies = [
         y: 485,
         originalX: 4250,
         originalY: 485,
-        speed: 1.2,
+        speed: 72,
         alive: true
     },
 
@@ -1593,7 +1465,7 @@ const meleeEnemies = [
         y: 465,
         originalX: 5100,
         originalY: 465,
-        speed: 1.2,
+        speed: 72,
         alive: true
     },
 
@@ -1602,7 +1474,7 @@ const meleeEnemies = [
         y: 385,
         originalX: 7850,
         originalY: 385,
-        speed: 1.2,
+        speed: 72,
         alive: true
     },
 
@@ -1611,7 +1483,7 @@ const meleeEnemies = [
         y: 455,
         originalX: 8750,
         originalY: 455,
-        speed: 1.2,
+        speed: 72,
         alive: true
     },
 
@@ -1620,7 +1492,7 @@ const meleeEnemies = [
         y: 455,
         originalX: 10000,
         originalY: 455,
-        speed: 1.2,
+        speed: 72,
         alive: true
     },
 
@@ -1629,7 +1501,7 @@ const meleeEnemies = [
         y: 585,
         originalX: 11360,
         originalY: 585,
-        speed: 1.2,
+        speed: 72,
         alive: true
     }
 
@@ -1658,6 +1530,15 @@ const bullets = [];
 
 const MAX_BULLETS =
     20;
+
+
+/*
+ * 従来 vx = -1 px/frame
+ * → -60 px/sec
+ */
+
+const BULLET_SPEED =
+    100;
 
 
 /* =========================================================
@@ -1708,6 +1589,9 @@ let startTime =
 let lastTime =
     performance.now();
 
+let deltaTime =
+    1 / 60;
+
 let lastTimerUpdate =
     0;
 
@@ -1738,9 +1622,7 @@ catch (e) {
 }
 
 
-if (
-    bestTime !== null
-) {
+if (bestTime !== null) {
 
     bestElement.textContent =
         "BEST: " +
@@ -1764,8 +1646,7 @@ document.addEventListener(
             e.key === "A"
         ) {
 
-            leftPressed =
-                true;
+            leftPressed = true;
 
             e.preventDefault();
 
@@ -1778,8 +1659,7 @@ document.addEventListener(
             e.key === "D"
         ) {
 
-            rightPressed =
-                true;
+            rightPressed = true;
 
             e.preventDefault();
 
@@ -1793,12 +1673,9 @@ document.addEventListener(
             e.key === "W"
         ) {
 
-            if (
-                !e.repeat
-            ) {
+            if (!e.repeat) {
 
-                jumpPressed =
-                    true;
+                jumpPressed = true;
 
             }
 
@@ -1841,8 +1718,7 @@ document.addEventListener(
             e.key === "A"
         ) {
 
-            leftPressed =
-                false;
+            leftPressed = false;
 
         }
 
@@ -1853,8 +1729,7 @@ document.addEventListener(
             e.key === "D"
         ) {
 
-            rightPressed =
-                false;
+            rightPressed = false;
 
         }
 
@@ -1866,8 +1741,7 @@ document.addEventListener(
             e.key === "W"
         ) {
 
-            jumpPressed =
-                false;
+            jumpPressed = false;
 
         }
 
@@ -1876,30 +1750,17 @@ document.addEventListener(
 
 
 /* =========================================================
-   START
+   BUTTONS
 ========================================================= */
 
 startButton.addEventListener(
     "click",
-    function() {
-
-        startGame();
-
-    }
+    startGame
 );
-
-
-/* =========================================================
-   RESTART
-========================================================= */
 
 restartButton.addEventListener(
     "click",
-    function() {
-
-        startGame();
-
-    }
+    startGame
 );
 
 
@@ -1909,8 +1770,7 @@ restartButton.addEventListener(
 
 function clearBullets() {
 
-    bullets.length =
-        0;
+    bullets.length = 0;
 
 }
 
@@ -1944,6 +1804,7 @@ function startGame() {
     cameraX =
         0;
 
+
     jumpPressed =
         false;
 
@@ -1966,6 +1827,12 @@ function startGame() {
 
     startTime =
         performance.now();
+
+    lastTime =
+        startTime;
+
+    deltaTime =
+        1 / 60;
 
     lastTimerUpdate =
         0;
@@ -2036,15 +1903,10 @@ function rectsOverlap(
 ) {
 
     return (
-
         ax < bx + bw &&
-
         ax + aw > bx &&
-
         ay < by + bh &&
-
         ay + ah > by
-
     );
 
 }
@@ -2081,9 +1943,7 @@ function getPlayerHitbox() {
    ENEMY HITBOX
 ========================================================= */
 
-function getEnemyHitbox(
-    enemy
-) {
+function getEnemyHitbox(enemy) {
 
     return {
 
@@ -2110,9 +1970,7 @@ function getEnemyHitbox(
    MELEE HITBOX
 ========================================================= */
 
-function getMeleeEnemyHitbox(
-    enemy
-) {
+function getMeleeEnemyHitbox(enemy) {
 
     return {
 
@@ -2136,42 +1994,37 @@ function getMeleeEnemyHitbox(
 
 
 /* =========================================================
-   HORIZONTAL
+   HORIZONTAL MOVEMENT
 ========================================================= */
 
-function updateHorizontal() {
+function updateHorizontal(dt) {
+
+    let direction = 0;
+
+
+    if (leftPressed) {
+        direction -= 1;
+    }
+
+    if (rightPressed) {
+        direction += 1;
+    }
+
+
+    if (direction === 0) {
+        return;
+    }
+
 
     let nextX =
-        playerX;
+        playerX +
+        direction *
+        MOVE_SPEED *
+        dt;
 
 
-    if (
-        leftPressed
-    ) {
-
-        nextX -=
-            MOVE_SPEED;
-
-    }
-
-
-    if (
-        rightPressed
-    ) {
-
-        nextX +=
-            MOVE_SPEED;
-
-    }
-
-
-    if (
-        nextX < 0
-    ) {
-
-        nextX =
-            0;
-
+    if (nextX < 0) {
+        nextX = 0;
     }
 
 
@@ -2188,13 +2041,16 @@ function updateHorizontal() {
     }
 
 
+    /*
+     * トゲの横移動ブロック
+     */
+
     const hitbox =
         getPlayerHitbox();
 
 
     const top =
         hitbox.y;
-
 
     const bottom =
         hitbox.y +
@@ -2225,7 +2081,6 @@ function updateHorizontal() {
             playerX +
             PLAYER_HITBOX_OFFSET_X;
 
-
         const currentRight =
             currentLeft +
             PLAYER_HITBOX_WIDTH;
@@ -2235,15 +2090,12 @@ function updateHorizontal() {
             nextX +
             PLAYER_HITBOX_OFFSET_X;
 
-
         const nextRight =
             nextLeft +
             PLAYER_HITBOX_WIDTH;
 
 
-        if (
-            nextX > playerX
-        ) {
+        if (direction > 0) {
 
             if (
                 currentRight <= spike.x &&
@@ -2258,17 +2110,11 @@ function updateHorizontal() {
             }
 
         }
-
-
-        if (
-            nextX < playerX
-        ) {
+        else {
 
             if (
-                currentLeft >=
-                    spike.x + 36 &&
-                nextLeft <=
-                    spike.x + 36
+                currentLeft >= spike.x + 36 &&
+                nextLeft <= spike.x + 36
             ) {
 
                 nextX =
@@ -2318,13 +2164,16 @@ function updateJump() {
    GRAVITY
 ========================================================= */
 
-function updateGravity() {
+function updateGravity(dt) {
 
     velocityY +=
-        GRAVITY;
+        GRAVITY *
+        dt;
+
 
     playerY +=
-        velocityY;
+        velocityY *
+        dt;
 
 }
 
@@ -2333,7 +2182,7 @@ function updateGravity() {
    PLATFORM
 ========================================================= */
 
-function updatePlatforms() {
+function updatePlatforms(previousPlayerBottom) {
 
     grounded =
         false;
@@ -2346,20 +2195,13 @@ function updatePlatforms() {
     const left =
         hitbox.x;
 
-
     const right =
         hitbox.x +
         hitbox.w;
 
-
     const bottom =
         hitbox.y +
         hitbox.h;
-
-
-    const previousBottom =
-        bottom -
-        velocityY;
 
 
     for (
@@ -2373,10 +2215,8 @@ function updatePlatforms() {
 
 
         if (
-            p.x + p.w <
-                left - 100 ||
-            p.x >
-                right + 100
+            p.x + p.w < left - 100 ||
+            p.x > right + 100
         ) {
 
             continue;
@@ -2396,7 +2236,7 @@ function updatePlatforms() {
 
         if (
             velocityY >= 0 &&
-            previousBottom <= p.y &&
+            previousPlayerBottom <= p.y &&
             bottom >= p.y
         ) {
 
@@ -2424,7 +2264,7 @@ function updatePlatforms() {
    SPIKES
 ========================================================= */
 
-function updateSpikes() {
+function updateSpikes(previousFoot) {
 
     if (
         velocityY <= 0
@@ -2444,11 +2284,6 @@ function updateSpikes() {
         hitbox.h;
 
 
-    const previousFoot =
-        foot -
-        velocityY;
-
-
     const points = [
 
         hitbox.x + 4,
@@ -2457,8 +2292,7 @@ function updateSpikes() {
         hitbox.w / 2,
 
         hitbox.x +
-        hitbox.w -
-        4
+        hitbox.w - 4
 
     ];
 
@@ -2540,9 +2374,7 @@ function updateSpikes() {
    RANGED ENEMIES
 ========================================================= */
 
-function updateRangedEnemies(
-    now
-) {
+function updateRangedEnemies(now) {
 
     const playerHitbox =
         getPlayerHitbox();
@@ -2550,7 +2382,6 @@ function updateRangedEnemies(
 
     const minX =
         playerX - 1400;
-
 
     const maxX =
         playerX + 1400;
@@ -2566,12 +2397,8 @@ function updateRangedEnemies(
             rangedEnemies[i];
 
 
-        if (
-            !enemy.alive
-        ) {
-
+        if (!enemy.alive) {
             continue;
-
         }
 
 
@@ -2586,9 +2413,7 @@ function updateRangedEnemies(
 
 
         const enemyHitbox =
-            getEnemyHitbox(
-                enemy
-            );
+            getEnemyHitbox(enemy);
 
 
         if (
@@ -2610,7 +2435,8 @@ function updateRangedEnemies(
             const previousBottom =
                 playerHitbox.y +
                 playerHitbox.h -
-                velocityY;
+                velocityY *
+                deltaTime;
 
 
             if (
@@ -2662,18 +2488,14 @@ function updateRangedEnemies(
                     enemy.shotCount % 2 === 0
                 ) {
 
-                    createBullet(
-                        enemy
-                    );
+                    createBullet(enemy);
 
                 }
 
             }
             else {
 
-                createBullet(
-                    enemy
-                );
+                createBullet(enemy);
 
             }
 
@@ -2692,9 +2514,7 @@ function updateRangedEnemies(
    BULLET CREATE
 ========================================================= */
 
-function createBullet(
-    enemy
-) {
+function createBullet(enemy) {
 
     if (
         bullets.length >=
@@ -2715,7 +2535,7 @@ function createBullet(
             enemy.y + 3,
 
         vx:
-            -1
+            -BULLET_SPEED
 
     });
 
@@ -2726,14 +2546,11 @@ function createBullet(
    BULLET UPDATE
 ========================================================= */
 
-function updateBullets() {
+function updateBullets(dt) {
 
     for (
-        let i =
-            bullets.length - 1;
-
+        let i = bullets.length - 1;
         i >= 0;
-
         i--
     ) {
 
@@ -2742,7 +2559,8 @@ function updateBullets() {
 
 
         bullet.x +=
-            bullet.vx;
+            bullet.vx *
+            dt;
 
 
         if (
@@ -2792,10 +2610,10 @@ function updateBullets() {
 
 
 /* =========================================================
-   MELEE UPDATE
+   MELEE ENEMIES
 ========================================================= */
 
-function updateMeleeEnemies() {
+function updateMeleeEnemies(dt) {
 
     for (
         let i = 0;
@@ -2807,12 +2625,8 @@ function updateMeleeEnemies() {
             meleeEnemies[i];
 
 
-        if (
-            !enemy.alive
-        ) {
-
+        if (!enemy.alive) {
             continue;
-
         }
 
 
@@ -2929,13 +2743,15 @@ function updateMeleeEnemies() {
                     ) {
 
                         enemy.x -=
-                            enemy.speed;
+                            enemy.speed *
+                            dt;
 
                     }
                     else {
 
                         enemy.x +=
-                            enemy.speed;
+                            enemy.speed *
+                            dt;
 
                     }
 
@@ -2951,8 +2767,7 @@ function updateMeleeEnemies() {
 
 
                     if (
-                        enemy.x <
-                        minX
+                        enemy.x < minX
                     ) {
 
                         enemy.x =
@@ -2962,8 +2777,7 @@ function updateMeleeEnemies() {
 
 
                     if (
-                        enemy.x >
-                        maxX
+                        enemy.x > maxX
                     ) {
 
                         enemy.x =
@@ -3007,7 +2821,8 @@ function updateMeleeEnemies() {
             const previousBottom =
                 hitbox.y +
                 hitbox.h -
-                velocityY;
+                velocityY *
+                deltaTime;
 
 
             if (
@@ -3098,7 +2913,7 @@ function updateGoal() {
    CAMERA
 ========================================================= */
 
-function updateCamera() {
+function updateCamera(dt) {
 
     let target =
         playerX -
@@ -3110,20 +2925,16 @@ function updateCamera() {
         target < 0
     ) {
 
-        target =
-            0;
+        target = 0;
 
     }
 
 
     const maxCamera =
         Math.max(
-
             0,
-
             WORLD_WIDTH -
             screenWidth
-
         );
 
 
@@ -3138,12 +2949,20 @@ function updateCamera() {
     }
 
 
+    const cameraAlpha =
+        1 -
+        Math.pow(
+            1 - CAMERA_SMOOTH,
+            dt * 60
+        );
+
+
     cameraX +=
         (
             target -
             cameraX
         ) *
-        CAMERA_SMOOTH;
+        cameraAlpha;
 
 }
 
@@ -3152,93 +2971,178 @@ function updateCamera() {
    UPDATE
 ========================================================= */
 
-function update(
-    now
-) {
+function update(now, dt) {
 
-    updateHorizontal();
+    /*
+     * 1フレームが長すぎても
+     * ゲームが一気に進まないよう制限。
+     *
+     * 最大 1/30秒。
+     */
+
+    deltaTime =
+        Math.min(
+            Math.max(dt, 0),
+            1 / 30
+        );
+
+
+    /*
+     * 開始前にはゲーム物理を動かさない。
+     */
+
+    if (!gameStarted) {
+        return;
+    }
+
+
+    /*
+     * 今フレーム開始時の足位置。
+     */
+
+    const beforeHitbox =
+        getPlayerHitbox();
+
+
+    const previousBottom =
+        beforeHitbox.y +
+        beforeHitbox.h;
+
+
+    /*
+     * 水平移動
+     */
+
+    updateHorizontal(
+        deltaTime
+    );
+
+
+    /*
+     * ジャンプ
+     */
 
     updateJump();
 
-    updateGravity();
 
-    updatePlatforms();
+    /*
+     * 重力
+     */
 
-    updateSpikes();
+    updateGravity(
+        deltaTime
+    );
 
 
-    if (
-        !gameStarted
-    ) {
+    /*
+     * 足位置を取得
+     */
 
+    const currentHitbox =
+        getPlayerHitbox();
+
+
+    const currentFoot =
+        currentHitbox.y +
+        currentHitbox.h;
+
+
+    /*
+     * 足元のプラットフォーム
+     */
+
+    updatePlatforms(
+        previousBottom
+    );
+
+
+    /*
+     * トゲ
+     */
+
+    updateSpikes(
+        previousBottom
+    );
+
+
+    if (!gameStarted) {
         return;
-
     }
 
+
+    /*
+     * 遠距離敵
+     */
 
     updateRangedEnemies(
         now
     );
 
 
-    if (
-        !gameStarted
-    ) {
-
+    if (!gameStarted) {
         return;
-
     }
 
 
-    updateMeleeEnemies();
+    /*
+     * 近接敵
+     */
+
+    updateMeleeEnemies(
+        deltaTime
+    );
 
 
-    if (
-        !gameStarted
-    ) {
-
+    if (!gameStarted) {
         return;
-
     }
 
 
-    updateBullets();
+    /*
+     * 弾
+     */
+
+    updateBullets(
+        deltaTime
+    );
 
 
-    if (
-        !gameStarted
-    ) {
-
+    if (!gameStarted) {
         return;
-
     }
 
+
+    /*
+     * 落下
+     */
 
     updateFall();
 
 
-    if (
-        !gameStarted
-    ) {
-
+    if (!gameStarted) {
         return;
-
     }
 
+
+    /*
+     * ゴール
+     */
 
     updateGoal();
 
 
-    if (
-        !gameStarted
-    ) {
-
+    if (!gameStarted) {
         return;
-
     }
 
 
-    updateCamera();
+    /*
+     * カメラ
+     */
+
+    updateCamera(
+        deltaTime
+    );
 
 }
 
@@ -3254,12 +3158,10 @@ function drawBackground() {
 
 
     ctx.fillRect(
-
         0,
         0,
         screenWidth,
         screenHeight
-
     );
 
 }
@@ -3269,9 +3171,7 @@ function drawBackground() {
    PLATFORM DRAW
 ========================================================= */
 
-function drawPlatform(
-    p
-) {
+function drawPlatform(p) {
 
     const x =
         p.x -
@@ -3334,9 +3234,7 @@ function drawPlatform(
    SPIKE DRAW
 ========================================================= */
 
-function drawSpike(
-    spike
-) {
+function drawSpike(spike) {
 
     const x =
         spike.x -
@@ -3369,18 +3267,15 @@ function drawSpike(
         y + 36
     );
 
-
     ctx.lineTo(
         x + 18,
         y
     );
 
-
     ctx.lineTo(
         x + 36,
         y + 36
     );
-
 
     ctx.closePath();
 
@@ -3400,18 +3295,15 @@ function drawSpike(
         y
     );
 
-
     ctx.lineTo(
         x + 22,
         y + 36
     );
 
-
     ctx.lineTo(
         x + 18,
         y + 36
     );
-
 
     ctx.closePath();
 
@@ -3428,10 +3320,8 @@ function drawSpike(
 const playerImage =
     new Image();
 
-
 playerImage.src =
     "player.png";
-
 
 let playerImageLoaded =
     false;
@@ -3454,11 +3344,9 @@ playerImage.onerror =
         playerImageLoaded =
             false;
 
-
         console.warn(
             "player.pngを読み込めません。代替描画を使用します。"
         );
-
 
         render();
 
@@ -3468,10 +3356,8 @@ playerImage.onerror =
 const rangedEnemyImage =
     new Image();
 
-
 rangedEnemyImage.src =
     "rangedEnemy.png";
-
 
 let rangedEnemyImageLoaded =
     false;
@@ -3494,11 +3380,9 @@ rangedEnemyImage.onerror =
         rangedEnemyImageLoaded =
             false;
 
-
         console.warn(
             "rangedEnemy.pngを読み込めません。代替描画を使用します。"
         );
-
 
         render();
 
@@ -3508,10 +3392,8 @@ rangedEnemyImage.onerror =
 const meleeEnemyImage =
     new Image();
 
-
 meleeEnemyImage.src =
     "meleeEnemy.png";
-
 
 let meleeEnemyImageLoaded =
     false;
@@ -3534,11 +3416,9 @@ meleeEnemyImage.onerror =
         meleeEnemyImageLoaded =
             false;
 
-
         console.warn(
             "meleeEnemy.pngを読み込めません。代替描画を使用します。"
         );
-
 
         render();
 
@@ -3587,13 +3467,10 @@ function drawPlayer() {
 
 
     ctx.fillRect(
-
         x,
         y,
-
         PLAYER_WIDTH,
         PLAYER_HEIGHT
-
     );
 
 
@@ -3642,16 +3519,10 @@ function drawPlayer() {
    RANGED DRAW
 ========================================================= */
 
-function drawRangedEnemy(
-    enemy
-) {
+function drawRangedEnemy(enemy) {
 
-    if (
-        !enemy.alive
-    ) {
-
+    if (!enemy.alive) {
         return;
-
     }
 
 
@@ -3776,16 +3647,10 @@ function drawRangedEnemy(
    MELEE DRAW
 ========================================================= */
 
-function drawMeleeEnemy(
-    enemy
-) {
+function drawMeleeEnemy(enemy) {
 
-    if (
-        !enemy.alive
-    ) {
-
+    if (!enemy.alive) {
         return;
-
     }
 
 
@@ -3952,9 +3817,7 @@ function drawMeleeEnemy(
    BULLET DRAW
 ========================================================= */
 
-function drawBullet(
-    bullet
-) {
+function drawBullet(bullet) {
 
     const x =
         bullet.x -
@@ -4190,14 +4053,12 @@ function render() {
    TIMER
 ========================================================= */
 
-function updateTimer(
-    now
-) {
+function updateTimer(now) {
 
     if (
         now -
         lastTimerUpdate <
-        100
+        50
     ) {
 
         return;
@@ -4229,18 +4090,13 @@ function updateTimer(
 
 function die() {
 
-    if (
-        !gameStarted
-    ) {
-
+    if (!gameStarted) {
         return;
-
     }
 
 
     gameStarted =
         false;
-
 
     gameFinished =
         true;
@@ -4269,18 +4125,13 @@ function die() {
 
 async function win() {
 
-    if (
-        !gameStarted
-    ) {
-
+    if (!gameStarted) {
         return;
-
     }
 
 
     gameStarted =
         false;
-
 
     gameFinished =
         true;
@@ -4306,9 +4157,9 @@ async function win() {
         " 秒";
 
 
-    /* =========================
-       LOCAL BEST
-    ========================= */
+    /*
+     * LOCAL BEST
+     */
 
     if (
         bestTime === null ||
@@ -4322,22 +4173,16 @@ async function win() {
         try {
 
             localStorage.setItem(
-
                 "athleticBestTime",
-
                 String(time)
-
             );
 
         }
         catch (e) {
 
             console.warn(
-
                 "BEST記録を保存できません:",
-
                 e
-
             );
 
         }
@@ -4362,9 +4207,9 @@ async function win() {
     render();
 
 
-    /* =========================
-       D1 SAVE
-    ========================= */
+    /*
+     * D1 SAVE
+     */
 
     const result =
         await saveScoreToServer(
@@ -4382,10 +4227,6 @@ async function win() {
             result.data
         );
 
-
-        /*
-         * ゴール直後にランキング更新
-         */
 
         loadRanking();
 
@@ -4406,24 +4247,30 @@ async function win() {
    GAME LOOP
 ========================================================= */
 
-function gameLoop(
-    now
-) {
+function gameLoop(now) {
 
     try {
 
-        if (
-            gameStarted
-        ) {
+        const dt =
+            (
+                now -
+                lastTime
+            ) / 1000;
+
+
+        lastTime =
+            now;
+
+
+        if (gameStarted) {
 
             update(
-                now
+                now,
+                dt
             );
 
 
-            if (
-                gameStarted
-            ) {
+            if (gameStarted) {
 
                 updateTimer(
                     now
@@ -4431,10 +4278,10 @@ function gameLoop(
 
             }
 
-
-            render();
-
         }
+
+
+        render();
 
     }
     catch (error) {
@@ -4488,7 +4335,6 @@ catch (error) {
     canvas.width =
         screenWidth;
 
-
     canvas.height =
         screenHeight;
 
@@ -4499,7 +4345,7 @@ catch (error) {
 
 
 /* =========================================================
-   DISCORD LOAD
+   DISCORD
 ========================================================= */
 
 loadDiscordUser();
@@ -4517,3 +4363,4 @@ requestAnimationFrame(
 
 </body>
 </html>
+```
