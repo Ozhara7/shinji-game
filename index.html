@@ -339,10 +339,6 @@ async function loadDiscordUser() {
             );
 
 
-        /* =========================
-           OAuthから戻ってきた場合
-        ========================= */
-
         const sessionFromUrl =
             params.get("session");
 
@@ -364,10 +360,6 @@ async function loadDiscordUser() {
         }
 
 
-        /* =========================
-           保存済みセッション取得
-        ========================= */
-
         const session =
             sessionStorage.getItem(
                 "discordSession"
@@ -383,10 +375,6 @@ async function loadDiscordUser() {
 
         }
 
-
-        /* =========================
-           Workerへ確認
-        ========================= */
 
         const response =
             await fetch(
@@ -446,35 +434,43 @@ async function loadDiscordUser() {
 
 async function saveScoreToServer(time) {
 
+    const session =
+        sessionStorage.getItem(
+            "discordSession"
+        );
+
+
+    /* =========================
+       Discord未ログイン
+    ========================= */
+
+    if (!session) {
+
+        console.warn(
+            "Discord未ログインのためランキング登録をスキップします。"
+        );
+
+        return {
+            success: false,
+            reason: "not_logged_in"
+        };
+
+    }
+
+
     try {
 
-        const session =
-            sessionStorage.getItem(
-                "discordSession"
+        const score =
+            Number(
+                Number(time).toFixed(2)
             );
 
 
-        /* =========================
-           Discord未ログイン
-        ========================= */
+        console.log(
+            "D1へスコア送信:",
+            score
+        );
 
-        if (!session) {
-
-            console.log(
-                "Discord未ログインのためスコア保存をスキップ"
-            );
-
-            return {
-                success: false,
-                reason: "not_logged_in"
-            };
-
-        }
-
-
-        /* =========================
-           Workerへ送信
-        ========================= */
 
         const response =
             await fetch(
@@ -495,9 +491,7 @@ async function saveScoreToServer(time) {
                     body: JSON.stringify({
 
                         time:
-                            Number(
-                                time.toFixed(2)
-                            )
+                            score
 
                     })
 
@@ -514,36 +508,45 @@ async function saveScoreToServer(time) {
                 await response.json();
 
         }
-        catch (e) {
+        catch (error) {
 
             data = null;
 
         }
 
 
-        /* =========================
-           保存失敗
-        ========================= */
+        console.log(
+            "D1レスポンス:",
+            response.status,
+            data
+        );
+
 
         if (!response.ok) {
 
             console.error(
                 "スコア保存失敗:",
+                response.status,
                 data
             );
 
             return {
+
                 success: false,
-                reason: "server_error",
-                data: data
+
+                reason:
+                    "server_error",
+
+                status:
+                    response.status,
+
+                data:
+                    data
+
             };
 
         }
 
-
-        /* =========================
-           保存成功
-        ========================= */
 
         console.log(
             "スコア保存成功:",
@@ -552,8 +555,12 @@ async function saveScoreToServer(time) {
 
 
         return {
+
             success: true,
-            data: data
+
+            data:
+                data
+
         };
 
     }
@@ -565,8 +572,15 @@ async function saveScoreToServer(time) {
         );
 
         return {
+
             success: false,
-            reason: "network_error"
+
+            reason:
+                "network_error",
+
+            error:
+                error
+
         };
 
     }
@@ -602,6 +616,7 @@ function resizeCanvas() {
                 RENDER_SCALE
             )
         );
+
 
     canvas.height =
         Math.max(
@@ -1039,7 +1054,8 @@ try {
             "athleticBestTime"
         );
 
-} catch (e) {
+}
+catch (e) {
 
     console.warn(
         "localStorageを使用できません:",
@@ -1285,10 +1301,6 @@ function startGame() {
         performance.now();
 
 
-    /* =========================
-       銃の敵を復活
-    ========================= */
-
     for (
         let i = 0;
         i < rangedEnemies.length;
@@ -1306,10 +1318,6 @@ function startGame() {
 
     }
 
-
-    /* =========================
-       近接敵を復活
-    ========================= */
 
     for (
         let i = 0;
@@ -3417,11 +3425,9 @@ async function win() {
     }
 
 
-    /*
-        ここで即座にゲームを終了。
-        通信を待っている間に
-        win() が何度も呼ばれるのを防ぐ。
-    */
+    /* =========================
+       ゲーム終了
+    ========================= */
 
     gameStarted =
         false;
@@ -3450,22 +3456,14 @@ async function win() {
         " 秒";
 
 
-    /* =====================================================
+    /* =========================
        LOCAL BEST
-    ===================================================== */
-
-    let isNewLocalRecord =
-        false;
-
+    ========================= */
 
     if (
         bestTime === null ||
         time < Number(bestTime)
     ) {
-
-        isNewLocalRecord =
-            true;
-
 
         bestTime =
             time;
@@ -3501,9 +3499,9 @@ async function win() {
     }
 
 
-    /* =====================================================
-       RESULT表示
-    ===================================================== */
+    /* =========================
+       結果画面を即表示
+    ========================= */
 
     message.style.display =
         "block";
@@ -3512,9 +3510,9 @@ async function win() {
     render();
 
 
-    /* =====================================================
+    /* =========================
        D1へ保存
-    ===================================================== */
+    ========================= */
 
     const result =
         await saveScoreToServer(
@@ -3522,9 +3520,9 @@ async function win() {
         );
 
 
-    /* =====================================================
-       サーバー保存結果
-    ===================================================== */
+    /* =========================
+       保存結果
+    ========================= */
 
     if (
         result &&
@@ -3532,14 +3530,16 @@ async function win() {
     ) {
 
         console.log(
-            "ランキングへの保存処理が完了しました。"
+            "✅ ランキング登録完了",
+            result.data
         );
 
     }
     else {
 
-        console.log(
-            "ランキング保存は行われませんでした。"
+        console.warn(
+            "⚠️ ランキング登録されませんでした",
+            result
         );
 
     }
