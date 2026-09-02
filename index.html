@@ -85,6 +85,35 @@ body {
 
 
 /* =========================
+   RANKING BUTTON
+========================= */
+
+#rankingButton {
+    position: fixed;
+    right: 20px;
+    top: 20px;
+    z-index: 15;
+
+    border: 0;
+    padding: 12px 18px;
+
+    border-radius: 10px;
+
+    background: rgba(0, 0, 0, 0.82);
+    color: white;
+
+    font-size: 15px;
+    font-weight: bold;
+
+    cursor: pointer;
+}
+
+#rankingButton:hover {
+    transform: scale(1.04);
+}
+
+
+/* =========================
    CONTROLS
 ========================= */
 
@@ -163,7 +192,7 @@ body {
     transform: translate(-50%, -50%);
     z-index: 30;
     display: none;
-    width: min(400px, 90vw);
+    width: min(420px, 90vw);
     padding: 30px;
     text-align: center;
     color: white;
@@ -183,6 +212,214 @@ body {
     margin-bottom: 20px;
 }
 
+
+/* =========================
+   RANKING
+========================= */
+
+#rankingScreen {
+    position: fixed;
+    inset: 0;
+
+    z-index: 100;
+
+    display: none;
+
+    justify-content: center;
+    align-items: center;
+
+    background: rgba(0, 0, 0, 0.72);
+}
+
+#rankingBox {
+    width: min(500px, 92vw);
+    max-height: 90vh;
+
+    padding: 25px;
+
+    color: white;
+
+    background: rgba(10, 10, 10, 0.97);
+
+    border: 1px solid #444;
+
+    border-radius: 18px;
+
+    overflow: hidden;
+}
+
+#rankingTitle {
+    text-align: center;
+
+    font-size: 28px;
+    font-weight: bold;
+
+    margin-bottom: 18px;
+}
+
+#rankingList {
+    max-height: 55vh;
+
+    overflow-y: auto;
+
+    margin-bottom: 18px;
+}
+
+.rankingRow {
+    display: grid;
+
+    grid-template-columns:
+        55px
+        1fr
+        110px;
+
+    align-items: center;
+
+    gap: 10px;
+
+    padding: 12px 10px;
+
+    margin-bottom: 6px;
+
+    background: #1b1b1b;
+
+    border-radius: 8px;
+}
+
+.rankingRank {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.rankingName {
+    overflow: hidden;
+
+    text-overflow: ellipsis;
+
+    white-space: nowrap;
+
+    font-size: 15px;
+}
+
+.rankingTime {
+    text-align: right;
+
+    font-size: 17px;
+
+    font-weight: bold;
+}
+
+.rankingEmpty {
+    padding: 30px 10px;
+
+    text-align: center;
+
+    color: #aaa;
+}
+
+.rankingError {
+    padding: 30px 10px;
+
+    text-align: center;
+
+    color: #ff7777;
+}
+
+#rankingButtons {
+    display: flex;
+
+    justify-content: center;
+
+    gap: 10px;
+
+    flex-wrap: wrap;
+}
+
+#rankingRefreshButton,
+#rankingCloseButton {
+    border: 0;
+
+    padding: 10px 20px;
+
+    border-radius: 9px;
+
+    font-size: 15px;
+
+    font-weight: bold;
+
+    cursor: pointer;
+}
+
+#rankingRefreshButton {
+    background: white;
+    color: #111;
+}
+
+#rankingCloseButton {
+    background: #444;
+    color: white;
+}
+
+#rankingRefreshButton:hover,
+#rankingCloseButton:hover {
+    transform: scale(1.04);
+}
+
+#rankingStatus {
+    text-align: center;
+
+    margin-bottom: 10px;
+
+    font-size: 13px;
+
+    color: #999;
+}
+
+
+/* =========================
+   MOBILE
+========================= */
+
+@media (
+    max-width: 600px
+) {
+
+    #ui {
+        left: 10px;
+        top: 10px;
+        min-width: 210px;
+        padding: 10px 13px;
+    }
+
+    #rankingButton {
+        right: 10px;
+        top: 10px;
+
+        padding: 9px 12px;
+
+        font-size: 13px;
+    }
+
+    #controls {
+        left: 10px;
+        bottom: 10px;
+
+        font-size: 11px;
+    }
+
+    #rankingBox {
+        padding: 18px;
+    }
+
+    .rankingRow {
+        grid-template-columns:
+            45px
+            1fr
+            90px;
+    }
+
+}
+
 </style>
 </head>
 
@@ -192,6 +429,7 @@ body {
 <div id="game">
 
     <canvas id="canvas"></canvas>
+
 
     <div id="ui">
 
@@ -212,6 +450,11 @@ body {
         </div>
 
     </div>
+
+
+    <button id="rankingButton">
+        🏆 ランキング
+    </button>
 
 
     <div id="controls">
@@ -265,10 +508,46 @@ body {
 
     </div>
 
+
+    <!-- =========================
+         RANKING SCREEN
+    ========================= -->
+
+    <div id="rankingScreen">
+
+        <div id="rankingBox">
+
+            <div id="rankingTitle">
+                🏆 WORLD RANKING
+            </div>
+
+            <div id="rankingStatus">
+                ランキングを読み込み中...
+            </div>
+
+            <div id="rankingList"></div>
+
+            <div id="rankingButtons">
+
+                <button id="rankingRefreshButton">
+                    🔄 更新
+                </button>
+
+                <button id="rankingCloseButton">
+                    閉じる
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
 </div>
 
 
 <script>
+
 
 /* =========================================================
    CANVAS
@@ -315,6 +594,41 @@ const messageTime =
 
 const restartButton =
     document.getElementById("restartButton");
+
+
+/* =========================================================
+   RANKING DOM
+========================================================= */
+
+const rankingButton =
+    document.getElementById(
+        "rankingButton"
+    );
+
+const rankingScreen =
+    document.getElementById(
+        "rankingScreen"
+    );
+
+const rankingList =
+    document.getElementById(
+        "rankingList"
+    );
+
+const rankingStatus =
+    document.getElementById(
+        "rankingStatus"
+    );
+
+const rankingRefreshButton =
+    document.getElementById(
+        "rankingRefreshButton"
+    );
+
+const rankingCloseButton =
+    document.getElementById(
+        "rankingCloseButton"
+    );
 
 
 /* =========================================================
@@ -439,10 +753,6 @@ async function saveScoreToServer(time) {
             "discordSession"
         );
 
-
-    /* =========================
-       Discord未ログイン
-    ========================= */
 
     if (!session) {
 
@@ -586,6 +896,309 @@ async function saveScoreToServer(time) {
     }
 
 }
+
+
+/* =========================================================
+   LOAD RANKING
+========================================================= */
+
+async function loadRanking() {
+
+    rankingStatus.textContent =
+        "ランキングを読み込み中...";
+
+    rankingList.innerHTML = "";
+
+
+    try {
+
+        const response =
+            await fetch(
+                API_URL + "/api/ranking",
+                {
+                    method: "GET",
+
+                    cache: "no-store"
+                }
+            );
+
+
+        let data = null;
+
+
+        try {
+
+            data =
+                await response.json();
+
+        }
+        catch (error) {
+
+            data = null;
+
+        }
+
+
+        console.log(
+            "ランキングAPI:",
+            response.status,
+            data
+        );
+
+
+        if (
+            !response.ok
+        ) {
+
+            rankingStatus.textContent =
+                "ランキング取得に失敗しました";
+
+            rankingList.innerHTML =
+                '<div class="rankingError">サーバーエラーが発生しました</div>';
+
+            return;
+
+        }
+
+
+        if (
+            !data ||
+            !Array.isArray(
+                data.ranking
+            )
+        ) {
+
+            rankingStatus.textContent =
+                "ランキングデータがありません";
+
+            rankingList.innerHTML =
+                '<div class="rankingEmpty">まだランキングがありません</div>';
+
+            return;
+
+        }
+
+
+        const ranking =
+            data.ranking;
+
+
+        if (
+            ranking.length === 0
+        ) {
+
+            rankingStatus.textContent =
+                "ランキング";
+
+            rankingList.innerHTML =
+                '<div class="rankingEmpty">まだ記録がありません</div>';
+
+            return;
+
+        }
+
+
+        rankingStatus.textContent =
+            "TOP " +
+            ranking.length;
+
+
+        for (
+            let i = 0;
+            i < ranking.length;
+            i++
+        ) {
+
+            const item =
+                ranking[i];
+
+
+            const row =
+                document.createElement(
+                    "div"
+                );
+
+            row.className =
+                "rankingRow";
+
+
+            const rank =
+                document.createElement(
+                    "div"
+                );
+
+            rank.className =
+                "rankingRank";
+
+
+            if (
+                item.rank === 1
+            ) {
+
+                rank.textContent =
+                    "🥇";
+
+            }
+            else if (
+                item.rank === 2
+            ) {
+
+                rank.textContent =
+                    "🥈";
+
+            }
+            else if (
+                item.rank === 3
+            ) {
+
+                rank.textContent =
+                    "🥉";
+
+            }
+            else {
+
+                rank.textContent =
+                    item.rank + "位";
+
+            }
+
+
+            const name =
+                document.createElement(
+                    "div"
+                );
+
+            name.className =
+                "rankingName";
+
+            name.textContent =
+                item.discord_name ||
+                "Unknown";
+
+
+            const time =
+                document.createElement(
+                    "div"
+                );
+
+            time.className =
+                "rankingTime";
+
+            time.textContent =
+                Number(
+                    item.time
+                ).toFixed(2) +
+                " 秒";
+
+
+            row.appendChild(
+                rank
+            );
+
+            row.appendChild(
+                name
+            );
+
+            row.appendChild(
+                time
+            );
+
+
+            rankingList.appendChild(
+                row
+            );
+
+        }
+
+    }
+    catch (error) {
+
+        console.error(
+            "ランキング取得エラー:",
+            error
+        );
+
+
+        rankingStatus.textContent =
+            "ランキング取得に失敗しました";
+
+
+        rankingList.innerHTML =
+            '<div class="rankingError">通信エラーが発生しました</div>';
+
+    }
+
+}
+
+
+/* =========================================================
+   OPEN RANKING
+========================================================= */
+
+function openRanking() {
+
+    if (
+        gameStarted
+    ) {
+
+        return;
+
+    }
+
+
+    rankingScreen.style.display =
+        "flex";
+
+
+    loadRanking();
+
+}
+
+
+/* =========================================================
+   CLOSE RANKING
+========================================================= */
+
+function closeRanking() {
+
+    rankingScreen.style.display =
+        "none";
+
+}
+
+
+/* =========================================================
+   RANKING EVENTS
+========================================================= */
+
+rankingButton.addEventListener(
+    "click",
+    function() {
+
+        openRanking();
+
+    }
+);
+
+
+rankingRefreshButton.addEventListener(
+    "click",
+    function() {
+
+        loadRanking();
+
+    }
+);
+
+
+rankingCloseButton.addEventListener(
+    "click",
+    function() {
+
+        closeRanking();
+
+    }
+);
 
 
 /* =========================================================
@@ -1086,6 +1699,24 @@ document.addEventListener(
     function(e) {
 
         if (
+            rankingScreen.style.display ===
+            "flex"
+        ) {
+
+            if (
+                e.key === "Escape"
+            ) {
+
+                closeRanking();
+
+            }
+
+            return;
+
+        }
+
+
+        if (
             e.key === "ArrowLeft" ||
             e.key === "a" ||
             e.key === "A"
@@ -1253,6 +1884,9 @@ function startGame() {
 
     startScreen.style.display =
         "none";
+
+
+    closeRanking();
 
 
     playerX =
@@ -3425,10 +4059,6 @@ async function win() {
     }
 
 
-    /* =========================
-       ゲーム終了
-    ========================= */
-
     gameStarted =
         false;
 
@@ -3499,10 +4129,6 @@ async function win() {
     }
 
 
-    /* =========================
-       結果画面を即表示
-    ========================= */
-
     message.style.display =
         "block";
 
@@ -3519,10 +4145,6 @@ async function win() {
             time
         );
 
-
-    /* =========================
-       保存結果
-    ========================= */
 
     if (
         result &&
