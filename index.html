@@ -92,7 +92,9 @@ body {
     position: fixed;
     right: 20px;
     top: 20px;
-    z-index: 15;
+
+    /* START画面より上、ランキング画面より下 */
+    z-index: 25;
 
     border: 0;
     padding: 12px 18px;
@@ -509,10 +511,6 @@ body {
     </div>
 
 
-    <!-- =========================
-         RANKING SCREEN
-    ========================= -->
-
     <div id="rankingScreen">
 
         <div id="rankingBox">
@@ -652,10 +650,8 @@ async function loadDiscordUser() {
                 window.location.search
             );
 
-
         const sessionFromUrl =
             params.get("session");
-
 
         if (sessionFromUrl) {
 
@@ -663,7 +659,6 @@ async function loadDiscordUser() {
                 "discordSession",
                 sessionFromUrl
             );
-
 
             window.history.replaceState(
                 {},
@@ -673,12 +668,10 @@ async function loadDiscordUser() {
 
         }
 
-
         const session =
             sessionStorage.getItem(
                 "discordSession"
             );
-
 
         if (!session) {
 
@@ -688,7 +681,6 @@ async function loadDiscordUser() {
             return;
 
         }
-
 
         const response =
             await fetch(
@@ -703,7 +695,6 @@ async function loadDiscordUser() {
                 }
             );
 
-
         if (!response.ok) {
 
             sessionStorage.removeItem(
@@ -717,10 +708,8 @@ async function loadDiscordUser() {
 
         }
 
-
         const user =
             await response.json();
-
 
         discordUserElement.textContent =
             "Discord: " +
@@ -753,7 +742,6 @@ async function saveScoreToServer(time) {
             "discordSession"
         );
 
-
     if (!session) {
 
         console.warn(
@@ -767,7 +755,6 @@ async function saveScoreToServer(time) {
 
     }
 
-
     try {
 
         const score =
@@ -775,12 +762,10 @@ async function saveScoreToServer(time) {
                 Number(time).toFixed(2)
             );
 
-
         console.log(
             "D1へスコア送信:",
             score
         );
-
 
         const response =
             await fetch(
@@ -808,9 +793,7 @@ async function saveScoreToServer(time) {
                 }
             );
 
-
         let data = null;
-
 
         try {
 
@@ -824,13 +807,11 @@ async function saveScoreToServer(time) {
 
         }
 
-
         console.log(
             "D1レスポンス:",
             response.status,
             data
         );
-
 
         if (!response.ok) {
 
@@ -857,12 +838,10 @@ async function saveScoreToServer(time) {
 
         }
 
-
         console.log(
             "スコア保存成功:",
             data
         );
-
 
         return {
 
@@ -909,7 +888,6 @@ async function loadRanking() {
 
     rankingList.innerHTML = "";
 
-
     try {
 
         const response =
@@ -922,9 +900,7 @@ async function loadRanking() {
                 }
             );
 
-
         let data = null;
-
 
         try {
 
@@ -938,17 +914,13 @@ async function loadRanking() {
 
         }
 
-
         console.log(
             "ランキングAPI:",
             response.status,
             data
         );
 
-
-        if (
-            !response.ok
-        ) {
+        if (!response.ok) {
 
             rankingStatus.textContent =
                 "ランキング取得に失敗しました";
@@ -959,7 +931,6 @@ async function loadRanking() {
             return;
 
         }
-
 
         if (
             !data ||
@@ -978,10 +949,8 @@ async function loadRanking() {
 
         }
 
-
         const ranking =
             data.ranking;
-
 
         if (
             ranking.length === 0
@@ -997,11 +966,9 @@ async function loadRanking() {
 
         }
 
-
         rankingStatus.textContent =
             "TOP " +
             ranking.length;
-
 
         for (
             let i = 0;
@@ -1012,7 +979,6 @@ async function loadRanking() {
             const item =
                 ranking[i];
 
-
             const row =
                 document.createElement(
                     "div"
@@ -1021,7 +987,6 @@ async function loadRanking() {
             row.className =
                 "rankingRow";
 
-
             const rank =
                 document.createElement(
                     "div"
@@ -1029,7 +994,6 @@ async function loadRanking() {
 
             rank.className =
                 "rankingRank";
-
 
             if (
                 item.rank === 1
@@ -1062,7 +1026,6 @@ async function loadRanking() {
 
             }
 
-
             const name =
                 document.createElement(
                     "div"
@@ -1074,7 +1037,6 @@ async function loadRanking() {
             name.textContent =
                 item.discord_name ||
                 "Unknown";
-
 
             const time =
                 document.createElement(
@@ -1090,7 +1052,6 @@ async function loadRanking() {
                 ).toFixed(2) +
                 " 秒";
 
-
             row.appendChild(
                 rank
             );
@@ -1102,7 +1063,6 @@ async function loadRanking() {
             row.appendChild(
                 time
             );
-
 
             rankingList.appendChild(
                 row
@@ -1118,10 +1078,8 @@ async function loadRanking() {
             error
         );
 
-
         rankingStatus.textContent =
             "ランキング取得に失敗しました";
-
 
         rankingList.innerHTML =
             '<div class="rankingError">通信エラーが発生しました</div>';
@@ -1137,18 +1095,8 @@ async function loadRanking() {
 
 function openRanking() {
 
-    if (
-        gameStarted
-    ) {
-
-        return;
-
-    }
-
-
     rankingScreen.style.display =
         "flex";
-
 
     loadRanking();
 
@@ -1173,7 +1121,10 @@ function closeRanking() {
 
 rankingButton.addEventListener(
     "click",
-    function() {
+    function(e) {
+
+        e.preventDefault();
+        e.stopPropagation();
 
         openRanking();
 
@@ -1183,7 +1134,10 @@ rankingButton.addEventListener(
 
 rankingRefreshButton.addEventListener(
     "click",
-    function() {
+    function(e) {
+
+        e.preventDefault();
+        e.stopPropagation();
 
         loadRanking();
 
@@ -1193,7 +1147,10 @@ rankingRefreshButton.addEventListener(
 
 rankingCloseButton.addEventListener(
     "click",
-    function() {
+    function(e) {
+
+        e.preventDefault();
+        e.stopPropagation();
 
         closeRanking();
 
@@ -1220,7 +1177,6 @@ function resizeCanvas() {
     screenHeight =
         Math.max(1, window.innerHeight);
 
-
     canvas.width =
         Math.max(
             1,
@@ -1229,7 +1185,6 @@ function resizeCanvas() {
                 RENDER_SCALE
             )
         );
-
 
     canvas.height =
         Math.max(
@@ -1240,13 +1195,11 @@ function resizeCanvas() {
             )
         );
 
-
     canvas.style.width =
         screenWidth + "px";
 
     canvas.style.height =
         screenHeight + "px";
-
 
     ctx.setTransform(
         RENDER_SCALE,
@@ -1257,10 +1210,8 @@ function resizeCanvas() {
         0
     );
 
-
     ctx.imageSmoothingEnabled =
         true;
-
 
     render();
 
@@ -1698,6 +1649,9 @@ document.addEventListener(
     "keydown",
     function(e) {
 
+        /*
+         * ランキング表示中はゲーム操作を停止
+         */
         if (
             rankingScreen.style.display ===
             "flex"
@@ -1884,7 +1838,6 @@ function startGame() {
 
     startScreen.style.display =
         "none";
-
 
     closeRanking();
 
