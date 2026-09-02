@@ -318,12 +318,16 @@ const restartButton =
 
 
 /* =========================================================
-   DISCORD
+   DISCORD / API
 ========================================================= */
 
 const API_URL =
     "https://shinji-game-api.0108yudaiohta.workers.dev";
 
+
+/* =========================================================
+   DISCORD USER LOAD
+========================================================= */
 
 async function loadDiscordUser() {
 
@@ -350,18 +354,6 @@ async function loadDiscordUser() {
                 sessionFromUrl
             );
 
-
-            /*
-                URLからsessionを削除
-
-                例：
-
-                ?session=xxxxx
-
-                ↓
-
-                /
-            */
 
             window.history.replaceState(
                 {},
@@ -393,7 +385,7 @@ async function loadDiscordUser() {
 
 
         /* =========================
-           Workerへユーザー情報確認
+           Workerへ確認
         ========================= */
 
         const response =
@@ -410,10 +402,6 @@ async function loadDiscordUser() {
             );
 
 
-        /* =========================
-           セッション無効
-        ========================= */
-
         if (!response.ok) {
 
             sessionStorage.removeItem(
@@ -427,10 +415,6 @@ async function loadDiscordUser() {
 
         }
 
-
-        /* =========================
-           ユーザー情報取得
-        ========================= */
 
         const user =
             await response.json();
@@ -450,6 +434,140 @@ async function loadDiscordUser() {
 
         discordUserElement.textContent =
             "Discord: 未ログイン";
+
+    }
+
+}
+
+
+/* =========================================================
+   SAVE SCORE TO SERVER
+========================================================= */
+
+async function saveScoreToServer(time) {
+
+    try {
+
+        const session =
+            sessionStorage.getItem(
+                "discordSession"
+            );
+
+
+        /* =========================
+           Discord未ログイン
+        ========================= */
+
+        if (!session) {
+
+            console.log(
+                "Discord未ログインのためスコア保存をスキップ"
+            );
+
+            return {
+                success: false,
+                reason: "not_logged_in"
+            };
+
+        }
+
+
+        /* =========================
+           Workerへ送信
+        ========================= */
+
+        const response =
+            await fetch(
+                API_URL + "/api/score",
+                {
+                    method: "POST",
+
+                    headers: {
+
+                        "Content-Type":
+                            "application/json",
+
+                        "Authorization":
+                            "Bearer " + session
+
+                    },
+
+                    body: JSON.stringify({
+
+                        time:
+                            Number(
+                                time.toFixed(2)
+                            )
+
+                    })
+
+                }
+            );
+
+
+        let data = null;
+
+
+        try {
+
+            data =
+                await response.json();
+
+        }
+        catch (e) {
+
+            data = null;
+
+        }
+
+
+        /* =========================
+           保存失敗
+        ========================= */
+
+        if (!response.ok) {
+
+            console.error(
+                "スコア保存失敗:",
+                data
+            );
+
+            return {
+                success: false,
+                reason: "server_error",
+                data: data
+            };
+
+        }
+
+
+        /* =========================
+           保存成功
+        ========================= */
+
+        console.log(
+            "スコア保存成功:",
+            data
+        );
+
+
+        return {
+            success: true,
+            data: data
+        };
+
+    }
+    catch (error) {
+
+        console.error(
+            "スコア送信エラー:",
+            error
+        );
+
+        return {
+            success: false,
+            reason: "network_error"
+        };
 
     }
 
@@ -3288,7 +3406,7 @@ function die() {
    WIN
 ========================================================= */
 
-function win() {
+async function win() {
 
     if (
         !gameStarted
@@ -3298,6 +3416,12 @@ function win() {
 
     }
 
+
+    /*
+        ここで即座にゲームを終了。
+        通信を待っている間に
+        win() が何度も呼ばれるのを防ぐ。
+    */
 
     gameStarted =
         false;
@@ -3326,10 +3450,22 @@ function win() {
         " 秒";
 
 
+    /* =====================================================
+       LOCAL BEST
+    ===================================================== */
+
+    let isNewLocalRecord =
+        false;
+
+
     if (
         bestTime === null ||
         time < Number(bestTime)
     ) {
+
+        isNewLocalRecord =
+            true;
+
 
         bestTime =
             time;
@@ -3342,7 +3478,8 @@ function win() {
                 String(time)
             );
 
-        } catch (e) {
+        }
+        catch (e) {
 
             console.warn(
                 "BEST記録を保存できません:",
@@ -3364,11 +3501,48 @@ function win() {
     }
 
 
+    /* =====================================================
+       RESULT表示
+    ===================================================== */
+
     message.style.display =
         "block";
 
 
     render();
+
+
+    /* =====================================================
+       D1へ保存
+    ===================================================== */
+
+    const result =
+        await saveScoreToServer(
+            time
+        );
+
+
+    /* =====================================================
+       サーバー保存結果
+    ===================================================== */
+
+    if (
+        result &&
+        result.success
+    ) {
+
+        console.log(
+            "ランキングへの保存処理が完了しました。"
+        );
+
+    }
+    else {
+
+        console.log(
+            "ランキング保存は行われませんでした。"
+        );
+
+    }
 
 }
 
@@ -3401,7 +3575,8 @@ function gameLoop(now) {
 
         }
 
-    } catch (error) {
+    }
+    catch (error) {
 
         console.error(
             "GAME LOOP ERROR:",
@@ -3426,7 +3601,8 @@ try {
 
     resizeCanvas();
 
-} catch (error) {
+}
+catch (error) {
 
     console.error(
         "Canvas initialization error:",
@@ -3456,6 +3632,10 @@ try {
 
 loadDiscordUser();
 
+
+/* =========================================================
+   GAME START
+========================================================= */
 
 requestAnimationFrame(
     gameLoop
